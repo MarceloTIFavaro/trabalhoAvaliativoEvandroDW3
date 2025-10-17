@@ -12,6 +12,15 @@ const getContasPagarByID = async (id_contas) => {
     return rows[0];
 }
 
+// Buscar contas por usuário
+const getContasPagarByUsuario = async (id_usuario) => {
+    const { rows } = await db.query(
+        "SELECT * FROM contas_a_pagar WHERE id_usuario = $1 ORDER BY data_vencimento ASC;",
+        [id_usuario]
+    );
+    return rows;
+}
+
 // Criar nova Conta
 const insertContasPagar = async (dados) => {
     const { descricao, valor, data_vencimento, status, id_usuario } = dados;
@@ -27,7 +36,8 @@ const insertContasPagar = async (dados) => {
   };
 
 // Atualizar Conta
-const updateConstasPagar = async (id_constas, dados) => {
+const updateConstasPagar = async (id_contas, dados) => {
+    const { descricao, valor, data_vencimento, status } = dados;
     const { rows } = await db.query(
         `UPDATE contas_a_pagar
          SET descricao = $1, valor = $2, data_vencimento = $3, status = $4
@@ -49,6 +59,7 @@ const deleteContasPagar = async (id_contas) => {
 module.exports = {
     getAllContasPagar,
     getContasPagarByID,
+    getContasPagarByUsuario,
     insertContasPagar,
     updateConstasPagar,
     deleteContasPagar,

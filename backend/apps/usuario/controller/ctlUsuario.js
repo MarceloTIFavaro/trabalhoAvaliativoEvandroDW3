@@ -58,10 +58,48 @@ const deleteUsuario = async (req, res) => {
   }
 };
 
+// Login do usuário
+const loginUsuario = async (req, res) => {
+  try {
+    const { email, senha } = req.body;
+    
+    if (!email || !senha) {
+      return res.status(400).json({ error: "Email e senha são obrigatórios" });
+    }
+
+    const usuario = await mdlUsuario.loginUsuario(email, senha);
+    
+    if (!usuario) {
+      return res.status(401).json({ error: "Email ou senha incorretos" });
+    }
+
+    // Remove a senha da resposta por segurança
+    const { senha: _, ...usuarioSemSenha } = usuario;
+    
+    res.status(200).json({
+      message: "Login realizado com sucesso",
+      usuario: usuarioSemSenha
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao fazer login", details: error.message });
+  }
+};
+
+// Logout do usuário (opcional - mais para limpeza de sessão)
+const logoutUsuario = async (req, res) => {
+  try {
+    res.status(200).json({ message: "Logout realizado com sucesso" });
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao fazer logout", details: error.message });
+  }
+};
+
 module.exports = {
   getAllUsuario,
   getUsuarioByID,
   insertUsuario,
   updateUsuario,
   deleteUsuario,
+  loginUsuario,
+  logoutUsuario,
 };

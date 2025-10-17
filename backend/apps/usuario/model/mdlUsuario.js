@@ -45,10 +45,20 @@ const deleteUsuario = async (id_user) => {
   return rows[0];
 };
 
+// Login do usuário
+const loginUsuario = async (email, senha) => {
+  const { rows } = await db.query(
+    "SELECT * FROM usuario WHERE email = $1 AND senha = $2;", 
+    [email, senha]
+  );
+  return rows[0];
+};
+
 module.exports = {
   getAllUsuario,
   getUsuarioById,
   createUsuario,
   updateUsuario,
   deleteUsuario,
+  loginUsuario,
 };

@@ -10,12 +10,20 @@ Content-Type: application/json
   "id_contas": 2
 }
 
+### Buscar contas por usuário
+POST http://localhost:40000/getContasPagarByUsuario
+Content-Type: application/json
+
+{
+  "id_usuario": 1
+}
+
 ### Criar uma nova conta
 POST http://localhost:40000/insertContasPagar
 Content-Type: application/json
   
  {
-  "descricao": "Conta de energia",
+  "descricao": "Conta de agua",
   "valor": 250.75,
   "data_vencimento": "2025-10-25",
   "status": "Pendente",
@@ -29,12 +37,11 @@ POST http://localhost:40000/updateContasPagar
 Content-Type: application/json
 
 {
-  "id_user": 1,
-  "nome": "Marcelo Atualizado",
-  "email": "marcelo_novo@example.com",
-  "senha": "654321",
-  "tipo": "Empresa",
-  "cpf_cnpj": "12.345.678/0001-99"
+  "id_contas": 1,
+  "descricao": "Conta de energia atualizada",
+  "valor": 300.00,
+  "data_vencimento": "2025-11-25",
+  "status": "Pago"
 }
 
 ### Deletar conta
@@ -42,5 +49,5 @@ POST http://localhost:40000/deleteContasPagar
 Content-Type: application/json
 
 {
-  "id_user": 1
+  "id_contas": 1
 }

@@ -28,6 +28,17 @@ const getContasPagarByID = async (req, res) => {
     }
 };
 
+// Buscar contas por usuário
+const getContasPagarByUsuario = async (req, res) => {
+    try {
+        const { id_usuario } = req.body;
+        const contas = await mdlContasPagar.getContasPagarByUsuario(id_usuario);
+        res.status(200).json(contas);
+    } catch (error) {
+        res.status(500).json({ error: "Erro ao buscar contas do usuário", details: error.message });
+    }
+};
+
 
 // Criar nova conta 
 const insertContasPagar = async (req, res) => {
@@ -74,6 +85,7 @@ const deleteContasPagar = async (req, res) => {
 module.exports = {
     getAllContasPagar,
     getContasPagarByID,
+    getContasPagarByUsuario,
     insertContasPagar,
     updateContasPagar,
     deleteContasPagar,

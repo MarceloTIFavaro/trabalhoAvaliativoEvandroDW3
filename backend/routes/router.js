@@ -7,7 +7,7 @@ const appContasPagar = require("../apps/contas_pagar/controller/ctlContasPagar")
 
 // Middleware global (executa antes de todas as rotas)
 routerApp.use((req, res, next) => {
-  console.log('Requisição recebida: ${req.method} ${req.url}');
+  console.log(`Requisição recebida: ${req.method} ${req.url}`);
   next();
 });
 
@@ -28,10 +28,17 @@ routerApp.post("/updateUsuario", appUsuario.updateUsuario);
 routerApp.post("/deleteUsuario", appUsuario.deleteUsuario);
 
 // --------------------
+// ROTAS DE AUTENTICAÇÃO
+// --------------------
+routerApp.post("/login", appUsuario.loginUsuario);
+routerApp.post("/logout", appUsuario.logoutUsuario);
+
+// --------------------
 // ROTAS DE CONTAS A PAGAR 
 // --------------------
 routerApp.get("/getAllContasPagar", appContasPagar.getAllContasPagar);
 routerApp.post("/getContasPagarByID", appContasPagar.getContasPagarByID);
+routerApp.post("/getContasPagarByUsuario", appContasPagar.getContasPagarByUsuario);
 routerApp.post("/insertContasPagar", appContasPagar.insertContasPagar);
 routerApp.post("/updateContasPagar", appContasPagar.updateContasPagar);
 routerApp.post("/deleteContasPagar", appContasPagar.deleteContasPagar);
