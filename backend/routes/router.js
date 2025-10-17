@@ -3,10 +3,11 @@ const routerApp = express.Router();
 
 // Controllers
 const appUsuario = require("../apps/usuario/controller/ctlUsuario");
+const appContasPagar = require("../apps/contas_pagar/controller/ctlContasPagar");
 
 // Middleware global (executa antes de todas as rotas)
 routerApp.use((req, res, next) => {
-  console.log(`🛰️  Requisição recebida: ${req.method} ${req.url}`);
+  console.log('Requisição recebida: ${req.method} ${req.url}');
   next();
 });
 
@@ -29,7 +30,11 @@ routerApp.post("/deleteUsuario", appUsuario.deleteUsuario);
 // --------------------
 // ROTAS DE CONTAS A PAGAR 
 // --------------------
-// const appContas = require("../apps/contas_a_pagar/controller/ctlContas");
-// routerApp.get("/getAllContas", appContas.getAllContas);
+routerApp.get("/getAllContasPagar", appContasPagar.getAllContasPagar);
+routerApp.post("/getContasPagarByID", appContasPagar.getContasPagarByID);
+routerApp.post("/insertContasPagar", appContasPagar.insertContasPagar);
+routerApp.post("/updateContasPagar", appContasPagar.updateContasPagar);
+routerApp.post("/deleteContasPagar", appContasPagar.deleteContasPagar);
+
 
 module.exports = routerApp;

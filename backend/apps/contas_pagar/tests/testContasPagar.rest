@@ -1,0 +1,46 @@
+### Listar todas as contas
+GET http://localhost:40000/getAllContasPagar
+Content-Type: application/json
+
+### Buscar uma conta por ID
+POST http://localhost:40000/getContasPagarByID
+Content-Type: application/json
+
+{
+  "id_contas": 2
+}
+
+### Criar uma nova conta
+POST http://localhost:40000/insertContasPagar
+Content-Type: application/json
+  
+ {
+  "descricao": "Conta de energia",
+  "valor": 250.75,
+  "data_vencimento": "2025-10-25",
+  "status": "Pendente",
+  "id_usuario": 1
+}
+
+
+
+### Atualizar conta existente
+POST http://localhost:40000/updateContasPagar
+Content-Type: application/json
+
+{
+  "id_user": 1,
+  "nome": "Marcelo Atualizado",
+  "email": "marcelo_novo@example.com",
+  "senha": "654321",
+  "tipo": "Empresa",
+  "cpf_cnpj": "12.345.678/0001-99"
+}
+
+### Deletar conta
+POST http://localhost:40000/deleteContasPagar
+Content-Type: application/json
+
+{
+  "id_user": 1
+}

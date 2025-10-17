@@ -13,7 +13,7 @@ const getAllUsuario = async (req, res) => {
 // Buscar usuário por ID
 const getUsuarioByID = async (req, res) => {
   try {
-    const { id_user } = req.body; // padrão: pega do body
+    const { id_user } = req.body; 
     const usuario = await mdlUsuario.getUsuarioById(id_user);
     if (!usuario) return res.status(404).json({ error: "Usuário não encontrado" });
     res.status(200).json(usuario);

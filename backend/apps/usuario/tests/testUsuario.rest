@@ -15,8 +15,8 @@ POST http://localhost:40000/insertUsuario
 Content-Type: application/json
 
 {
-  "nome": "Marcelo Favaro",
-  "email": "marce@example.com",
+  "nome": "Marcelo",
+  "email": "Marcelo@example.com",
   "senha": "123456",
   "tipo": "PessoaFisica",
   "cpf_cnpj": "123.456.789-01"
