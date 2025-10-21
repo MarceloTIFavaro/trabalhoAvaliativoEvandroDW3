@@ -42,6 +42,7 @@ routerApp.post("/getContasPagarByUsuario", appContasPagar.getContasPagarByUsuari
 routerApp.post("/insertContasPagar", appContasPagar.insertContasPagar);
 routerApp.post("/updateContasPagar", appContasPagar.updateContasPagar);
 routerApp.post("/deleteContasPagar", appContasPagar.deleteContasPagar);
+routerApp.post("/marcarContaComoPaga", appContasPagar.marcarContaComoPaga);
 
 
 module.exports = routerApp;

@@ -1,0 +1,324 @@
+/* ===================================
+   ESTILOS CUSTOMIZADOS
+   CONTAS A PAGAR
+   =================================== */
+
+/* ===================================
+   CONTAS ATRASADAS - DESTAQUE EM VERMELHO
+   =================================== */
+
+/* Linha de conta atrasada na tabela */
+.conta-atrasada {
+    background: linear-gradient(90deg, #fee2e2 0%, #fecaca 100%) !important;
+    border-left: 5px solid #dc2626 !important;
+    font-weight: 600;
+}
+
+.conta-atrasada:hover {
+    background: linear-gradient(90deg, #fecaca 0%, #fca5a5 100%) !important;
+}
+
+.conta-atrasada td {
+    color: #991b1b !important;
+}
+
+/* ===================================
+   ANIMAÇÕES (SUAVIZADAS)
+   =================================== */
+
+/* Animação suave para ícones de alerta - SEM PISCAR */
+.blink-animation {
+    opacity: 1;
+    /* Removida animação de piscar */
+}
+
+/* Alerta estático - SEM PULSAR */
+.blink-alert {
+    /* Removida animação de pulso */
+}
+
+/* ===================================
+   BOTÕES DE TIPO DE USUÁRIO
+   =================================== */
+.tipo-usuario-btn {
+    padding: 20px 10px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.tipo-usuario-btn:hover {
+    /* Removido transform para evitar efeito "pulante" */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+}
+
+.btn-check:checked + .tipo-usuario-btn {
+    background-color: #0d6efd !important;
+    color: white !important;
+    border-color: #0d6efd !important;
+}
+
+/* ===================================
+   ABAS DE AUTENTICAÇÃO
+   =================================== */
+#authTabs .nav-link {
+    color: #6c757d;
+    font-weight: 600;
+    padding: 15px 20px;
+    transition: all 0.3s ease;
+}
+
+#authTabs .nav-link:hover {
+    color: #0d6efd;
+}
+
+#authTabs .nav-link.active {
+    color: #0d6efd;
+    background-color: #ffffff;
+    border-bottom: 3px solid #0d6efd;
+}
+
+/* ===================================
+   CARDS DE DASHBOARD
+   =================================== */
+.card {
+    transition: box-shadow 0.3s ease;
+}
+
+.card:hover {
+    /* Removido transform para evitar efeito "pulante" */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+}
+
+/* ===================================
+   BADGES DE STATUS
+   =================================== */
+.badge {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* ===================================
+   ALERTAS DE CONTAS ATRASADAS
+   =================================== */
+.alert-danger {
+    border-left: 5px solid #dc2626;
+}
+
+.alert-danger .alert-heading {
+    color: #991b1b;
+}
+
+.alert-danger ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.alert-danger li {
+    padding: 5px 0;
+    color: #991b1b;
+}
+
+.alert-danger li::before {
+    content: "⚠️ ";
+    margin-right: 8px;
+}
+
+/* ===================================
+   TABELAS
+   =================================== */
+.table thead th {
+    background-color: #f8f9fa;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    color: #495057;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background-color: #f8f9fa;
+    /* Removido transform scale para evitar efeito "pulante" */
+}
+
+/* ===================================
+   BOTÕES DE AÇÃO
+   =================================== */
+.btn-sm {
+    padding: 5px 10px;
+    font-size: 0.875rem;
+}
+
+.btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+    /* Removido transform para evitar efeito "pulante" */
+    box-shadow: 0 2px 4px rgba(13, 110, 253, 0.2);
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-danger:hover {
+    background-color: #bb2d3b;
+    border-color: #b02a37;
+    /* Removido transform para evitar efeito "pulante" */
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
+}
+
+.btn-success {
+    background-color: #198754;
+    border-color: #198754;
+}
+
+.btn-success:hover {
+    background-color: #157347;
+    border-color: #146c43;
+    /* Removido transform para evitar efeito "pulante" */
+    box-shadow: 0 2px 4px rgba(25, 135, 84, 0.2);
+}
+
+/* ===================================
+   MODAL
+   =================================== */
+.modal-header {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.modal-title {
+    color: #212529;
+    font-weight: 700;
+}
+
+.modal-footer {
+    background-color: #f8f9fa;
+    border-top: 2px solid #dee2e6;
+}
+
+/* ===================================
+   FORMULÁRIOS
+   =================================== */
+.form-control:focus,
+.form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 8px;
+}
+
+/* ===================================
+   TOASTS
+   =================================== */
+.toast {
+    min-width: 300px;
+}
+
+.toast-body {
+    font-weight: 500;
+}
+
+/* ===================================
+   SIDEBAR E NAVBAR
+   =================================== */
+.sb-topnav {
+    padding: 0 1rem;
+    height: 56px;
+    z-index: 1039;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.25rem;
+}
+
+.sb-sidenav {
+    width: 225px;
+}
+
+.sb-sidenav .sb-sidenav-menu .nav .nav-link {
+    padding: 0.75rem 1rem;
+}
+
+.sb-sidenav .sb-sidenav-menu .nav .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.075);
+}
+
+.sb-sidenav .sb-sidenav-menu .nav .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.sb-sidenav-footer {
+    padding: 0.75rem;
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* ===================================
+   BREADCRUMB
+   =================================== */
+.breadcrumb {
+    background-color: transparent;
+    padding: 0;
+    margin-bottom: 1.5rem;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    content: "›";
+    font-size: 1.25rem;
+}
+
+/* ===================================
+   RESPONSIVIDADE
+   =================================== */
+@media (max-width: 768px) {
+    .tipo-usuario-btn {
+        padding: 15px 5px;
+        font-size: 0.9rem;
+    }
+    
+    .card {
+        margin-bottom: 1rem;
+    }
+    
+    .table {
+        font-size: 0.9rem;
+    }
+    
+    .btn-sm {
+        padding: 3px 8px;
+        font-size: 0.8rem;
+    }
+}
+
+/* ===================================
+   ANIMAÇÕES DE ENTRADA (REMOVIDAS)
+   =================================== */
+/* Animações de entrada removidas para evitar efeitos "pulantes" */
+
+/* ===================================
+   LOADING
+   =================================== */
+.fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+

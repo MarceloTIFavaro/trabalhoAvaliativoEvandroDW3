@@ -1,0 +1,354 @@
+{% extends "templates/base.html" %}
+
+{% block content %}
+
+<h1 class="mt-4">Gerenciar Contas a Pagar</h1>
+<ol class="breadcrumb mb-4">
+  <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+  <li class="breadcrumb-item active">Contas a Pagar</li>
+</ol>
+
+<!-- Notificações de Contas Atrasadas -->
+<div id="notificacoesAtrasadas"></div>
+
+<!-- Ações -->
+<div class="card mb-4">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span><i class="fas fa-table me-1"></i> Minhas Contas</span>
+    <div>
+      <select id="filtroStatus" class="form-select form-select-sm d-inline-block w-auto me-2">
+        <option value="">Todos os Status</option>
+        <option value="Pendente">Pendente</option>
+        <option value="Atrasado">Atrasado</option>
+        <option value="Pago">Pago</option>
+      </select>
+      <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalConta" onclick="abrirModalNovaConta()">
+        <i class="fas fa-plus"></i> Nova Conta
+      </button>
+    </div>
+  </div>
+  <div class="card-body">
+    <table class="table table-striped table-hover" id="tabelaContas">
+      <thead>
+        <tr>
+          <th>Descrição</th>
+          <th>Valor</th>
+          <th>Vencimento</th>
+          <th>Status</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="tbodyContas">
+        <tr>
+          <td colspan="5" class="text-center">
+            <i class="fas fa-spinner fa-spin"></i> Carregando contas...
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal Nova/Editar Conta -->
+<div class="modal fade" id="modalConta" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalTitulo">Nova Conta</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="formConta">
+        <div class="modal-body">
+          <input type="hidden" id="contaId">
+          
+          <div class="mb-3">
+            <label for="contaDescricao" class="form-label">
+              <i class="fas fa-file-alt"></i> Descrição *
+            </label>
+            <input type="text" class="form-control" id="contaDescricao" required placeholder="Ex: Conta de energia">
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="contaValor" class="form-label">
+                <i class="fas fa-dollar-sign"></i> Valor (R$) *
+              </label>
+              <input type="number" class="form-control" id="contaValor" step="0.01" required placeholder="0.00">
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="contaVencimento" class="form-label">
+                <i class="fas fa-calendar"></i> Vencimento *
+              </label>
+              <input type="date" class="form-control" id="contaVencimento" required>
+            </div>
+          </div>
+          
+          <div class="alert alert-info mb-0">
+            <i class="fas fa-info-circle"></i> <strong>Status automático:</strong> 
+            Nova conta = Pendente | Após vencimento = Atrasado | Use o botão "Pagar" para marcar como pago
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btnSalvar">
+            <i class="fas fa-save"></i> Salvar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  const userId = {{ parametros.IdUsuario }};
+  let contasGlobal = [];
+  
+  // Função para exibir toast
+  function showToast(message, type = 'success') {
+    const toastContainer = document.getElementById('toastContainer');
+    const toastId = 'toast-' + Date.now();
+    const bgColor = type === 'success' ? 'bg-success' : 'bg-danger';
+    const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+    
+    const toastHTML = `
+      <div id="${toastId}" class="toast align-items-center text-white ${bgColor} border-0" role="alert">
+        <div class="d-flex">
+          <div class="toast-body">
+            <i class="fas ${icon} me-2"></i>${message}
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+      </div>
+    `;
+    
+    toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+    const toastElement = document.getElementById(toastId);
+    const toast = new bootstrap.Toast(toastElement, { delay: 4000 });
+    toast.show();
+    
+    toastElement.addEventListener('hidden.bs.toast', () => {
+      toastElement.remove();
+    });
+  }
+  
+  // Função para formatar data
+  function formatarData(dataStr) {
+    const data = new Date(dataStr);
+    return data.toLocaleDateString('pt-BR');
+  }
+  
+  // Função para formatar data para input
+  function formatarDataInput(dataStr) {
+    const data = new Date(dataStr);
+    return data.toISOString().split('T')[0];
+  }
+  
+  // Função para formatar valor
+  function formatarValor(valor) {
+    return parseFloat(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  }
+  
+  // Carregar contas
+  async function carregarContas() {
+    try {
+      const response = await axios.get('/contaspagar/listar');
+      
+      if (response.data.status === 'ok') {
+        contasGlobal = response.data.contas;
+        renderizarContas(contasGlobal);
+        
+        // Verificar contas atrasadas (o status já vem calculado do backend)
+        const contasAtrasadas = contasGlobal.filter(c => c.status === 'Atrasado');
+        
+        if (contasAtrasadas.length > 0) {
+          const notificacoesDiv = document.getElementById('notificacoesAtrasadas');
+          notificacoesDiv.innerHTML = `
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+              <h5 class="alert-heading">
+                <i class="fas fa-exclamation-triangle"></i> 
+                Atenção! Você tem ${contasAtrasadas.length} conta(s) atrasada(s)
+              </h5>
+              <hr>
+              <ul class="mb-0">
+                ${contasAtrasadas.map(c => `<li><strong>${c.descricao}</strong> - Vencimento: ${formatarData(c.data_vencimento)} - ${formatarValor(c.valor)}</li>`).join('')}
+              </ul>
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          `;
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao carregar contas:', error);
+      showToast('Erro ao carregar contas', 'error');
+    }
+  }
+  
+  // Renderizar contas na tabela
+  function renderizarContas(contas) {
+    const tbody = document.getElementById('tbodyContas');
+    
+    if (contas.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="text-center">Nenhuma conta cadastrada</td></tr>';
+      return;
+    }
+    
+    tbody.innerHTML = contas.map(conta => {
+      const statusClass = conta.status === 'Pago' ? 'success' : (conta.status === 'Atrasado' ? 'danger' : 'warning');
+      
+      // IMPORTANTE: Contas pagas NUNCA ficam vermelhas, mesmo se estavam atrasadas
+      const rowClass = (conta.status === 'Atrasado' && conta.status !== 'Pago') ? 'table-danger conta-atrasada' : '';
+      
+      // Definir botões de ação baseado no status
+      let botoesAcao = '';
+      
+      if (conta.status !== 'Pago') {
+        // Se não está pago, mostrar botão Pagar
+        botoesAcao += `
+          <button class="btn btn-sm btn-success me-1" onclick="pagarConta(${conta.id_contas})" title="Marcar como Pago">
+            <i class="fas fa-check-circle"></i> Pagar
+          </button>
+        `;
+      }
+      
+      // Sempre permitir editar e deletar
+      botoesAcao += `
+        <button class="btn btn-sm btn-primary me-1" onclick='editarConta(${JSON.stringify(conta)})' title="Editar">
+          <i class="fas fa-edit"></i>
+        </button>
+        <button class="btn btn-sm btn-danger" onclick="deletarConta(${conta.id_contas})" title="Deletar">
+          <i class="fas fa-trash"></i>
+        </button>
+      `;
+      
+      return `
+        <tr class="${rowClass}">
+          <td><strong>${conta.descricao}</strong></td>
+          <td><strong>${formatarValor(conta.valor)}</strong></td>
+          <td>${formatarData(conta.data_vencimento)}</td>
+          <td>
+            <span class="badge bg-${statusClass}">
+              ${conta.status}
+              ${conta.status === 'Atrasado' ? '<i class="fas fa-exclamation-triangle ms-1"></i>' : ''}
+            </span>
+          </td>
+          <td class="text-nowrap">
+            ${botoesAcao}
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+  
+  // Filtro de status
+  document.getElementById('filtroStatus').addEventListener('change', function() {
+    const filtro = this.value;
+    
+    if (filtro === '') {
+      renderizarContas(contasGlobal);
+    } else {
+      const contasFiltradas = contasGlobal.filter(conta => conta.status === filtro);
+      renderizarContas(contasFiltradas);
+    }
+  });
+  
+  // Abrir modal para nova conta
+  function abrirModalNovaConta() {
+    document.getElementById('modalTitulo').textContent = 'Nova Conta';
+    document.getElementById('formConta').reset();
+    document.getElementById('contaId').value = '';
+  }
+  
+  // Editar conta
+  function editarConta(conta) {
+    document.getElementById('modalTitulo').textContent = 'Editar Conta';
+    document.getElementById('contaId').value = conta.id_contas;
+    document.getElementById('contaDescricao').value = conta.descricao;
+    document.getElementById('contaValor').value = conta.valor;
+    document.getElementById('contaVencimento').value = formatarDataInput(conta.data_vencimento);
+    
+    new bootstrap.Modal(document.getElementById('modalConta')).show();
+  }
+  
+  // Salvar conta
+  document.getElementById('formConta').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const id = document.getElementById('contaId').value;
+    const dados = {
+      descricao: document.getElementById('contaDescricao').value,
+      valor: parseFloat(document.getElementById('contaValor').value),
+      data_vencimento: document.getElementById('contaVencimento').value
+      // Status não é mais enviado - será definido automaticamente como 'Pendente'
+    };
+    
+    try {
+      let response;
+      if (id) {
+        // Atualizar
+        dados.id_contas = parseInt(id);
+        response = await axios.post('/contaspagar/atualizar', dados);
+      } else {
+        // Criar
+        response = await axios.post('/contaspagar/criar', dados);
+      }
+      
+      if (response.data.status === 'ok') {
+        showToast(response.data.msg, 'success');
+        bootstrap.Modal.getInstance(document.getElementById('modalConta')).hide();
+        carregarContas();
+      }
+    } catch (error) {
+      console.error('Erro ao salvar conta:', error);
+      const errorMsg = error.response?.data?.msg || 'Erro ao salvar conta';
+      showToast(errorMsg, 'error');
+    }
+  });
+  
+  // Deletar conta
+  async function deletarConta(id) {
+    if (!confirm('Tem certeza que deseja deletar esta conta?')) {
+      return;
+    }
+    
+    try {
+      const response = await axios.post('/contaspagar/deletar', { id_contas: id });
+      
+      if (response.data.status === 'ok') {
+        showToast('Conta deletada com sucesso!', 'success');
+        carregarContas();
+      }
+    } catch (error) {
+      console.error('Erro ao deletar conta:', error);
+      const errorMsg = error.response?.data?.msg || 'Erro ao deletar conta';
+      showToast(errorMsg, 'error');
+    }
+  }
+  
+  // Marcar conta como paga
+  async function pagarConta(id) {
+    if (!confirm('Deseja marcar esta conta como paga?')) {
+      return;
+    }
+    
+    try {
+      const response = await axios.post('/contaspagar/pagar', { id_contas: id });
+      
+      if (response.data.status === 'ok') {
+        showToast('Conta marcada como paga!', 'success');
+        carregarContas();
+      }
+    } catch (error) {
+      console.error('Erro ao marcar conta como paga:', error);
+      const errorMsg = error.response?.data?.msg || 'Erro ao marcar conta como paga';
+      showToast(errorMsg, 'error');
+    }
+  }
+  
+  // Carregar ao iniciar a página
+  window.onload = function() {
+    carregarContas();
+  };
+</script>
+
+{% endblock %}
+

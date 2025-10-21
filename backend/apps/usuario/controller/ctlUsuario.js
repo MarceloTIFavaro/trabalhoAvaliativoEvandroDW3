@@ -26,6 +26,17 @@ const getUsuarioByID = async (req, res) => {
 const insertUsuario = async (req, res) => {
   try {
     const usuario = req.body;
+    
+    // Validar se o formato do CPF/CNPJ corresponde ao tipo selecionado
+    if (usuario.cpf_cnpj && usuario.tipo) {
+      if (!validarFormatoCpfCnpj(usuario.cpf_cnpj, usuario.tipo)) {
+        const tipoEsperado = usuario.tipo === 'PessoaFisica' ? 'CPF (11 dígitos)' : 'CNPJ (14 dígitos)';
+        return res.status(400).json({ 
+          error: `O documento informado não corresponde ao tipo ${usuario.tipo === 'PessoaFisica' ? 'Pessoa Física' : 'Empresa'}. Esperado: ${tipoEsperado}` 
+        });
+      }
+    }
+    
     const novoUsuario = await mdlUsuario.createUsuario(usuario);
     res.status(201).json(novoUsuario);
   } catch (error) {
@@ -58,6 +69,33 @@ const deleteUsuario = async (req, res) => {
   }
 };
 
+// Função auxiliar para validar formato de CPF/CNPJ
+const validarFormatoCpfCnpj = (cpfCnpj, tipo) => {
+  // Remove espaços em branco
+  const cpfCnpjLimpo = cpfCnpj.replace(/\s/g, '');
+  
+  // Detecta se é CPF ou CNPJ pelo formato
+  const temBarraCNPJ = cpfCnpjLimpo.includes('/');
+  const temPontoCPF = cpfCnpjLimpo.includes('.') && cpfCnpjLimpo.includes('-') && !temBarraCNPJ;
+  
+  // Remove formatação para contar dígitos
+  const apenasNumeros = cpfCnpjLimpo.replace(/\D/g, '');
+  
+  // Determina o tipo pelo formato ou número de dígitos
+  let tipoDetectado = null;
+  
+  if (temBarraCNPJ || apenasNumeros.length === 14) {
+    tipoDetectado = 'Empresa';
+  } else if (temPontoCPF || apenasNumeros.length === 11) {
+    tipoDetectado = 'PessoaFisica';
+  } else if (apenasNumeros.length > 0) {
+    // Se não conseguiu detectar pelo formato, usa o tamanho
+    tipoDetectado = apenasNumeros.length === 14 ? 'Empresa' : 'PessoaFisica';
+  }
+  
+  return tipoDetectado === tipo;
+};
+
 // Login do usuário
 const loginUsuario = async (req, res) => {
   try {
@@ -71,6 +109,13 @@ const loginUsuario = async (req, res) => {
     
     if (!usuario) {
       return res.status(401).json({ error: "Email ou senha incorretos" });
+    }
+
+    // Validar se o formato do CPF/CNPJ corresponde ao tipo de usuário
+    if (!validarFormatoCpfCnpj(usuario.cpf_cnpj, usuario.tipo)) {
+      return res.status(401).json({ 
+        error: `Documento cadastrado não corresponde ao tipo ${usuario.tipo === 'PessoaFisica' ? 'Pessoa Física (CPF)' : 'Empresa (CNPJ)'}` 
+      });
     }
 
     // Remove a senha da resposta por segurança

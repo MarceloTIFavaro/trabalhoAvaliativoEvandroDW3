@@ -1,0 +1,251 @@
+{% extends "templates/base.html" %}
+
+{% block content %}
+
+<h1 class="mt-4">Dashboard</h1>
+<ol class="breadcrumb mb-4">
+  <li class="breadcrumb-item active">Visão Geral</li>
+</ol>
+
+<!-- Cards de Resumo -->
+<div class="row">
+  <div class="col-xl-3 col-md-6">
+    <div class="card bg-primary text-white mb-4">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="text-white-75 small">Total de Contas</div>
+            <div class="fs-2 fw-bold" id="totalContas">0</div>
+          </div>
+          <i class="fas fa-list fa-3x opacity-50"></i>
+        </div>
+      </div>
+      <div class="card-footer d-flex align-items-center justify-content-between">
+        <a class="small text-white stretched-link" href="/contaspagar/gerenciar">Ver Detalhes</a>
+        <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-3 col-md-6">
+    <div class="card bg-warning text-white mb-4">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="text-white-75 small">Pendentes</div>
+            <div class="fs-2 fw-bold" id="totalPendentes">0</div>
+          </div>
+          <i class="fas fa-clock fa-3x opacity-50"></i>
+        </div>
+      </div>
+      <div class="card-footer d-flex align-items-center justify-content-between">
+        <a class="small text-white stretched-link" href="/contaspagar/gerenciar">Ver Detalhes</a>
+        <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-3 col-md-6">
+    <div class="card bg-danger text-white mb-4">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="text-white-75 small">Atrasadas</div>
+            <div class="fs-2 fw-bold" id="totalAtrasadas">0</div>
+          </div>
+          <i class="fas fa-exclamation-triangle fa-3x opacity-50 blink-animation"></i>
+        </div>
+      </div>
+      <div class="card-footer d-flex align-items-center justify-content-between">
+        <a class="small text-white stretched-link" href="/contaspagar/gerenciar">Ver Detalhes</a>
+        <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-3 col-md-6">
+    <div class="card bg-success text-white mb-4">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="text-white-75 small">Pagas</div>
+            <div class="fs-2 fw-bold" id="totalPagas">0</div>
+          </div>
+          <i class="fas fa-check-circle fa-3x opacity-50"></i>
+        </div>
+      </div>
+      <div class="card-footer d-flex align-items-center justify-content-between">
+        <a class="small text-white stretched-link" href="/contaspagar/gerenciar">Ver Detalhes</a>
+        <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Notificações de Contas Atrasadas -->
+<div id="notificacoesAtrasadas"></div>
+
+<!-- Tabela de Contas Recentes -->
+<div class="card mb-4">
+  <div class="card-header">
+    <i class="fas fa-table me-1"></i>
+    Contas Recentes
+  </div>
+  <div class="card-body">
+    <table class="table table-striped" id="tabelaContasRecentes">
+      <thead>
+        <tr>
+          <th>Descrição</th>
+          <th>Valor</th>
+          <th>Vencimento</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="tbodyContasRecentes">
+        <tr>
+          <td colspan="4" class="text-center">
+            <i class="fas fa-spinner fa-spin"></i> Carregando...
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  const userId = {{ parametros.IdUsuario }};
+  
+  // Função para exibir toast
+  function showToast(message, type = 'success') {
+    const toastContainer = document.getElementById('toastContainer');
+    const toastId = 'toast-' + Date.now();
+    const bgColor = type === 'success' ? 'bg-success' : 'bg-danger';
+    const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+    
+    const toastHTML = `
+      <div id="${toastId}" class="toast align-items-center text-white ${bgColor} border-0" role="alert">
+        <div class="d-flex">
+          <div class="toast-body">
+            <i class="fas ${icon} me-2"></i>${message}
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+      </div>
+    `;
+    
+    toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+    const toastElement = document.getElementById(toastId);
+    const toast = new bootstrap.Toast(toastElement, { delay: 4000 });
+    toast.show();
+    
+    toastElement.addEventListener('hidden.bs.toast', () => {
+      toastElement.remove();
+    });
+  }
+  
+  // Função para verificar se a conta está atrasada
+  function verificarAtrasada(dataVencimento) {
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    const vencimento = new Date(dataVencimento);
+    return vencimento < hoje;
+  }
+  
+  // Função para formatar data
+  function formatarData(dataStr) {
+    const data = new Date(dataStr);
+    return data.toLocaleDateString('pt-BR');
+  }
+  
+  // Função para formatar valor
+  function formatarValor(valor) {
+    return parseFloat(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  }
+  
+  // Carregar dados do dashboard
+  async function carregarDashboard() {
+    try {
+      const response = await axios.get('/contaspagar/listar');
+      
+      if (response.data.status === 'ok') {
+        const contas = response.data.contas;
+        
+        // Calcular totais
+        let totalPendentes = 0;
+        let totalAtrasadas = 0;
+        let totalPagas = 0;
+        const contasAtrasadas = [];
+        
+        contas.forEach(conta => {
+          const isAtrasada = verificarAtrasada(conta.data_vencimento);
+          
+          if (conta.status === 'Pago') {
+            totalPagas++;
+          } else if (isAtrasada || conta.status === 'Atrasado') {
+            totalAtrasadas++;
+            contasAtrasadas.push(conta);
+          } else if (conta.status === 'Pendente') {
+            totalPendentes++;
+          }
+        });
+        
+        // Atualizar cards
+        document.getElementById('totalContas').textContent = contas.length;
+        document.getElementById('totalPendentes').textContent = totalPendentes;
+        document.getElementById('totalAtrasadas').textContent = totalAtrasadas;
+        document.getElementById('totalPagas').textContent = totalPagas;
+        
+        // Exibir notificações de contas atrasadas
+        if (contasAtrasadas.length > 0) {
+          const notificacoesDiv = document.getElementById('notificacoesAtrasadas');
+          notificacoesDiv.innerHTML = `
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+              <h5 class="alert-heading">
+                <i class="fas fa-exclamation-triangle blink-animation"></i> 
+                Atenção! Você tem ${contasAtrasadas.length} conta(s) atrasada(s)
+              </h5>
+              <hr>
+              <ul class="mb-0">
+                ${contasAtrasadas.map(c => `<li><strong>${c.descricao}</strong> - Vencimento: ${formatarData(c.data_vencimento)}</li>`).join('')}
+              </ul>
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          `;
+        }
+        
+        // Preencher tabela de contas recentes
+        const tbody = document.getElementById('tbodyContasRecentes');
+        if (contas.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" class="text-center">Nenhuma conta cadastrada</td></tr>';
+        } else {
+          const contasRecentes = contas.slice(0, 5);
+          tbody.innerHTML = contasRecentes.map(conta => {
+            const isAtrasada = verificarAtrasada(conta.data_vencimento);
+            const statusClass = conta.status === 'Pago' ? 'success' : (isAtrasada || conta.status === 'Atrasado' ? 'danger' : 'warning');
+            const rowClass = isAtrasada || conta.status === 'Atrasado' ? 'table-danger' : '';
+            
+            return `
+              <tr class="${rowClass}">
+                <td>${conta.descricao}</td>
+                <td>${formatarValor(conta.valor)}</td>
+                <td>${formatarData(conta.data_vencimento)}</td>
+                <td><span class="badge bg-${statusClass}">${conta.status}</span></td>
+              </tr>
+            `;
+          }).join('');
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dashboard:', error);
+      showToast('Erro ao carregar dados do dashboard', 'error');
+    }
+  }
+  
+  // Carregar ao iniciar a página
+  window.onload = function() {
+    carregarDashboard();
+  };
+</script>
+
+{% endblock %}
+

@@ -23,7 +23,7 @@ POST http://localhost:40000/insertContasPagar
 Content-Type: application/json
   
  {
-  "descricao": "Conta de agua",
+  "descricao": "Comida do cachorro",
   "valor": 250.75,
   "data_vencimento": "2025-10-25",
   "status": "Pendente",

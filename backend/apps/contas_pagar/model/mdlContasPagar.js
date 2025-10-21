@@ -55,6 +55,42 @@ const deleteContasPagar = async (id_contas) => {
     return { message: "Conta deletada com sucesso."};
 };
 
+// Marcar conta como paga
+const marcarContaComoPaga = async (id_contas) => {
+    const { rows } = await db.query(
+        `UPDATE contas_a_pagar
+         SET status = 'Pago'
+         WHERE id_contas = $1
+         RETURNING *;`,
+        [id_contas]
+    );
+    return rows[0];
+};
+
+// Verificar e atualizar status baseado na data de vencimento
+const verificarStatusAutomatico = (conta) => {
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    
+    const dataVencimento = new Date(conta.data_vencimento);
+    dataVencimento.setHours(0, 0, 0, 0);
+    
+    // Se já está pago, mantém pago
+    if (conta.status === 'Pago') {
+        return conta;
+    }
+    
+    // Se passou da data de vencimento, está atrasado
+    if (dataVencimento < hoje) {
+        conta.status = 'Atrasado';
+    } else {
+        // Caso contrário, está pendente
+        conta.status = 'Pendente';
+    }
+    
+    return conta;
+};
+
 
 module.exports = {
     getAllContasPagar,
@@ -63,4 +99,6 @@ module.exports = {
     insertContasPagar,
     updateConstasPagar,
     deleteContasPagar,
+    marcarContaComoPaga,
+    verificarStatusAutomatico,
 };
