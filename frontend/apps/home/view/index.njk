@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<h1 class="mt-4">Dashboard</h1>
+<h1 class="mt-4">Gerenciar Contas Gerais</h1>
 <ol class="breadcrumb mb-4">
   <li class="breadcrumb-item active">Visão Geral</li>
 </ol>
@@ -181,7 +181,7 @@
           
           if (conta.status === 'Pago') {
             totalPagas++;
-          } else if (isAtrasada || conta.status === 'Atrasado') {
+          } else if (conta.status === 'Atrasado' || (conta.status !== 'Pago' && isAtrasada)) {
             totalAtrasadas++;
             contasAtrasadas.push(conta);
           } else if (conta.status === 'Pendente') {
@@ -221,8 +221,8 @@
           const contasRecentes = contas.slice(0, 5);
           tbody.innerHTML = contasRecentes.map(conta => {
             const isAtrasada = verificarAtrasada(conta.data_vencimento);
-            const statusClass = conta.status === 'Pago' ? 'success' : (isAtrasada || conta.status === 'Atrasado' ? 'danger' : 'warning');
-            const rowClass = isAtrasada || conta.status === 'Atrasado' ? 'table-danger' : '';
+            const statusClass = conta.status === 'Pago' ? 'success' : (conta.status === 'Atrasado' || (conta.status !== 'Pago' && isAtrasada) ? 'danger' : 'warning');
+            const rowClass = (conta.status !== 'Pago' && (conta.status === 'Atrasado' || isAtrasada)) ? 'table-danger' : '';
             
             return `
               <tr class="${rowClass}">

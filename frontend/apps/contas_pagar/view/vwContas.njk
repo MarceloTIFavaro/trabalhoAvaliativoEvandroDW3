@@ -51,7 +51,7 @@
 
 <!-- Modal Nova/Editar Conta -->
 <div class="modal fade" id="modalConta" tabindex="-1">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="modalTitulo">Nova Conta</h5>
@@ -73,7 +73,7 @@
               <label for="contaValor" class="form-label">
                 <i class="fas fa-dollar-sign"></i> Valor (R$) *
               </label>
-              <input type="number" class="form-control" id="contaValor" step="0.01" required placeholder="0.00">
+              <input type="number" class="form-control" id="contaValor" step="0.01" min="0" required placeholder="0.00">
             </div>
             <div class="col-md-6 mb-3">
               <label for="contaVencimento" class="form-label">
@@ -81,12 +81,6 @@
               </label>
               <input type="date" class="form-control" id="contaVencimento" required>
             </div>
-          </div>
-          
-          <div class="alert alert-info mb-0">
-            <i class="fas fa-info-circle"></i> <strong>Status automático:</strong> 
-            Nova conta = Pendente | Após vencimento = Atrasado | Use o botão "Pagar" para marcar como pago
-          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -130,6 +124,16 @@
       toastElement.remove();
     });
   }
+  
+  // Impedir valores negativos no campo de valor
+  document.addEventListener('input', function(e) {
+    if (e.target && e.target.id === 'contaValor') {
+      const num = parseFloat(e.target.value);
+      if (!isNaN(num) && num < 0) {
+        e.target.value = 0;
+      }
+    }
+  });
   
   // Função para formatar data
   function formatarData(dataStr) {
@@ -280,6 +284,12 @@
       data_vencimento: document.getElementById('contaVencimento').value
       // Status não é mais enviado - será definido automaticamente como 'Pendente'
     };
+    
+    // Validação: impedir valor negativo ou inválido
+    if (isNaN(dados.valor) || dados.valor < 0) {
+      showToast('O valor deve ser zero ou positivo.', 'error');
+      return;
+    }
     
     try {
       let response;
