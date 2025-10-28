@@ -7,7 +7,7 @@ POST http://localhost:40000/getUsuarioByID
 Content-Type: application/json
 
 {
-  "id_user": 1
+  "id_user": 2
 }
 
 ### Criar um novo usuário
@@ -27,7 +27,7 @@ POST http://localhost:40000/updateUsuario
 Content-Type: application/json
 
 {
-  "id_user": 1,
+  "id_user": 2,
   "nome": "Marcelo Atualizado",
   "email": "marcelo_novo@example.com",
   "senha": "654321",
@@ -40,7 +40,7 @@ POST http://localhost:40000/deleteUsuario
 Content-Type: application/json
 
 {
-  "id_user": 1
+  "id_user": 2
 }
 
 ### Login do usuário
@@ -48,7 +48,7 @@ POST http://localhost:40000/login
 Content-Type: application/json
 
 {
-  "email": "usuario@example.com",
+  "email": "mfavaro53@gmail.com",
   "senha": "123456"
 }
 

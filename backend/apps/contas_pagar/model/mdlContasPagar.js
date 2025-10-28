@@ -24,7 +24,7 @@ const getContasPagarByUsuario = async (id_usuario) => {
 // Criar nova Conta
 const insertContasPagar = async (dados) => {
     const { descricao, valor, data_vencimento, status, id_usuario } = dados;
-  
+    
     const { rows } = await db.query(
       `INSERT INTO contas_a_pagar (descricao, valor, data_vencimento, status, id_usuario)
        VALUES ($1, $2, $3, $4, $5)
@@ -33,7 +33,7 @@ const insertContasPagar = async (dados) => {
     );
   
     return rows[0];
-  };
+}
 
 // Atualizar Conta
 const updateConstasPagar = async (id_contas, dados) => {
@@ -53,8 +53,8 @@ const updateConstasPagar = async (id_contas, dados) => {
 const deleteContasPagar = async (id_contas) => {
     await db.query("DELETE FROM contas_a_pagar WHERE id_contas = $1", [id_contas]);
     return { message: "Conta deletada com sucesso."};
-};
-
+}
+ 
 // Marcar conta como paga
 const marcarContaComoPaga = async (id_contas) => {
     const { rows } = await db.query(
@@ -65,7 +65,7 @@ const marcarContaComoPaga = async (id_contas) => {
         [id_contas]
     );
     return rows[0];
-};
+}
 
 // Verificar e atualizar status baseado na data de vencimento
 const verificarStatusAutomatico = (conta) => {
@@ -89,7 +89,7 @@ const verificarStatusAutomatico = (conta) => {
     }
     
     return conta;
-};
+}
 
 
 module.exports = {
@@ -101,4 +101,4 @@ module.exports = {
     deleteContasPagar,
     marcarContaComoPaga,
     verificarStatusAutomatico,
-};
+}
