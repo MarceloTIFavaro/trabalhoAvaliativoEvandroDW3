@@ -101,8 +101,8 @@ const updateContasPagar = async (req, res) => {
 const deleteContasPagar = async (req, res) => {
     try {
         const { id_contas } = req.body;
-        await mdlContasPagar.deleteContasPagar(id_contas);
-        res.status(200).json({ message: "Conta deletada com sucesso" });
+        const resultado = await mdlContasPagar.deleteContasPagar(id_contas);
+        res.status(200).json(resultado);
     } catch (error) {
         res.status(500).json({ error: "Erro ao deletar conta", details: error.message });
     }

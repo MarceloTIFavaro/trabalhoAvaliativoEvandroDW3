@@ -1,21 +1,21 @@
 const db = require("../../../database/databaseconfig");
 
-// Buscar todas as Contas
+// Buscar todas as Contas (não deletadas)
 const getAllContasPagar = async () => {
-    const { rows } = await db.query("SELECT * FROM contas_a_pagar ORDER BY id_contas")
+    const { rows } = await db.query("SELECT * FROM contas_a_pagar WHERE deleted = false ORDER BY id_contas")
     return rows;
 }
 
-// Buscar Conta ID
+// Buscar Conta ID (não deletada)
 const getContasPagarByID = async (id_contas) => { 
-    const { rows } = await db.query("SELECT * FROM contas_a_pagar WHERE id_contas = $1;",[id_contas]);
+    const { rows } = await db.query("SELECT * FROM contas_a_pagar WHERE id_contas = $1 AND deleted = false;",[id_contas]);
     return rows[0];
 }
 
-// Buscar contas por usuário
+// Buscar contas por usuário (não deletadas)
 const getContasPagarByUsuario = async (id_usuario) => {
     const { rows } = await db.query(
-        "SELECT * FROM contas_a_pagar WHERE id_usuario = $1 ORDER BY data_vencimento ASC;",
+        "SELECT * FROM contas_a_pagar WHERE id_usuario = $1 AND deleted = false ORDER BY data_vencimento ASC;",
         [id_usuario]
     );
     return rows;
@@ -49,18 +49,20 @@ const updateConstasPagar = async (id_contas, dados) => {
       return rows[0];
 }
 
-// Deletar Contas
+// Deletar Contas (soft delete)
 const deleteContasPagar = async (id_contas) => {
-    await db.query("DELETE FROM contas_a_pagar WHERE id_contas = $1", [id_contas]);
-    return { message: "Conta deletada com sucesso."};
+    const { rows } = await db.query("UPDATE contas_a_pagar SET deleted = true WHERE id_contas = $1 AND deleted = false RETURNING *;", [id_contas]);
+    return rows.length > 0 
+        ? { message: "Conta marcada como deletada com sucesso." }
+        : { message: "Conta não encontrada ou já deletada." };
 }
  
-// Marcar conta como paga
+// Marcar conta como paga (não deletada)
 const marcarContaComoPaga = async (id_contas) => {
     const { rows } = await db.query(
         `UPDATE contas_a_pagar
          SET status = 'Pago'
-         WHERE id_contas = $1
+         WHERE id_contas = $1 AND deleted = false
          RETURNING *;`,
         [id_contas]
     );

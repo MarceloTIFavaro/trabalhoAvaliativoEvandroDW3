@@ -1,26 +1,39 @@
-### Listar todas as contas
-GET http://localhost:40000/getAllContasPagar
+### Login do usuário (obter token)
+POST http://localhost:40000/login
 Content-Type: application/json
 
-### Buscar uma conta por ID
+{
+  "email": "mfavaro53@gmail.com",
+  "senha": "123456"
+}
+
+### Listar todas as contas (com autenticação)
+GET http://localhost:40000/getAllContasPagar
+Content-Type: application/json
+Authorization: Bearer SEU_TOKEN_AQUI
+
+### Buscar uma conta por ID (com autenticação)
 POST http://localhost:40000/getContasPagarByID
 Content-Type: application/json
+Authorization: Bearer SEU_TOKEN_AQUI
 
 {
   "id_contas": 2
 }
 
-### Buscar contas por usuário
+### Buscar contas por usuário (com autenticação)
 POST http://localhost:40000/getContasPagarByUsuario
 Content-Type: application/json
+Authorization: Bearer SEU_TOKEN_AQUI
 
 {
   "id_usuario": 1
 }
 
-### Criar uma nova conta
+### Criar uma nova conta (com autenticação)
 POST http://localhost:40000/insertContasPagar
 Content-Type: application/json
+Authorization: Bearer SEU_TOKEN_AQUI
   
  {
   "descricao": "Comida do cachorro",
@@ -32,9 +45,10 @@ Content-Type: application/json
 
 
 
-### Atualizar conta existente
+### Atualizar conta existente (com autenticação)
 POST http://localhost:40000/updateContasPagar
 Content-Type: application/json
+Authorization: Bearer SEU_TOKEN_AQUI
 
 {
   "id_contas": 1,
@@ -44,9 +58,19 @@ Content-Type: application/json
   "status": "Pago"
 }
 
-### Deletar conta
+### Marcar conta como paga (com autenticação)
+POST http://localhost:40000/marcarContaComoPaga
+Content-Type: application/json
+Authorization: Bearer SEU_TOKEN_AQUI
+
+{
+  "id_contas": 1
+}
+
+### Deletar conta (soft delete - com autenticação)
 POST http://localhost:40000/deleteContasPagar
 Content-Type: application/json
+Authorization: Bearer SEU_TOKEN_AQUI
 
 {
   "id_contas": 1

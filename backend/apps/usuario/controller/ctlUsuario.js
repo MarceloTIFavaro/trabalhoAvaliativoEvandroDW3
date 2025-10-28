@@ -1,4 +1,5 @@
 const mdlUsuario = require("../model/mdlUsuario");
+const jwt = require('jsonwebtoken');
 
 // Listar todos os usuários
 const getAllUsuario = async (req, res) => {
@@ -62,8 +63,8 @@ const deleteUsuario = async (req, res) => {
   try {
     const { id_user } = req.body; // pega do body
     const usuarioDeletado = await mdlUsuario.deleteUsuario(id_user);
-    if (!usuarioDeletado) return res.status(404).json({ error: "Usuário não encontrado" });
-    res.status(200).json(usuarioDeletado);
+    if (!usuarioDeletado) return res.status(404).json({ error: "Usuário não encontrado ou já deletado" });
+    res.status(200).json({ message: "Usuário marcado como deletado com sucesso", usuario: usuarioDeletado });
   } catch (error) {
     res.status(500).json({ error: "Erro ao deletar usuário", details: error.message });
   }
@@ -118,15 +119,49 @@ const loginUsuario = async (req, res) => {
       });
     }
 
+    // Gerar token JWT
+    const token = jwt.sign(
+      { 
+        id_user: usuario.id_user, 
+        email: usuario.email,
+        tipo: usuario.tipo
+      },
+      process.env.JWT_SECRET || 'sua_chave_secreta_aqui',
+      { expiresIn: '24h' }
+    );
+
     // Remove a senha da resposta por segurança
     const { senha: _, ...usuarioSemSenha } = usuario;
     
     res.status(200).json({
       message: "Login realizado com sucesso",
+      token: token,
       usuario: usuarioSemSenha
     });
   } catch (error) {
     res.status(500).json({ error: "Erro ao fazer login", details: error.message });
+  }
+};
+
+// Middleware de autenticação JWT
+const AutenticaJWT = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1]; // Bearer TOKEN
+    
+    if (!token) {
+      return res.status(401).json({ error: "Token de acesso não fornecido" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'sua_chave_secreta_aqui');
+    req.user = decoded; // Adiciona informações do usuário ao request
+    next();
+  } catch (error) {
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ error: "Token inválido" });
+    } else if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ error: "Token expirado" });
+    }
+    return res.status(500).json({ error: "Erro na autenticação", details: error.message });
   }
 };
 
@@ -147,4 +182,5 @@ module.exports = {
   deleteUsuario,
   loginUsuario,
   logoutUsuario,
+  AutenticaJWT,
 };

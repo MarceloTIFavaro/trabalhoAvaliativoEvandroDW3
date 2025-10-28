@@ -1,18 +1,30 @@
-### Listar todos os usuários
-GET http://localhost:40000/getAllUsuario
+### Login do usuário (obter token)
+POST http://localhost:40000/login
 Content-Type: application/json
 
-### Buscar um usuário por ID
+{
+  "email": "test@teste.com",
+  "senha": "123456"
+}
+
+### Listar todos os usuários (com autenticação)
+GET http://localhost:40000/getAllUsuario
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoyLCJlbWFpbCI6InRlc3RAdGVzdGUuY29tIiwidGlwbyI6IlBlc3NvYUZpc2ljYSIsImlhdCI6MTc2MTY4NjE3NiwiZXhwIjoxNzYxNzcyNTc2fQ.wT0P7_n6FKuj1ffWU1UPnhHi75XQ-2Qi7itR6EXv4rI
+
+### Buscar um usuário por ID (com autenticação)
 POST http://localhost:40000/getUsuarioByID
 Content-Type: application/json
+Authorization: Bearer SEU_TOKEN_AQUI
 
 {
   "id_user": 2
 }
 
-### Criar um novo usuário
+### Criar um novo usuário (com autenticação)
 POST http://localhost:40000/insertUsuario
 Content-Type: application/json
+Authorization: Bearer SEU_TOKEN_AQUI
 
 {
   "nome": "Marcelo",
@@ -22,9 +34,10 @@ Content-Type: application/json
   "cpf_cnpj": "123.456.789-01"
 }
 
-### Atualizar usuário existente
+### Atualizar usuário existente (com autenticação)
 POST http://localhost:40000/updateUsuario
 Content-Type: application/json
+Authorization: Bearer SEU_TOKEN_AQUI
 
 {
   "id_user": 2,
@@ -35,21 +48,13 @@ Content-Type: application/json
   "cpf_cnpj": "12.345.678/0001-99"
 }
 
-### Deletar usuário
+### Deletar usuário (soft delete - com autenticação)
 POST http://localhost:40000/deleteUsuario
 Content-Type: application/json
+Authorization: Bearer SEU_TOKEN_AQUI
 
 {
   "id_user": 2
-}
-
-### Login do usuário
-POST http://localhost:40000/login
-Content-Type: application/json
-
-{
-  "email": "mfavaro53@gmail.com",
-  "senha": "123456"
 }
 
 ### Logout do usuário

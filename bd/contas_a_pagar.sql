@@ -8,6 +8,7 @@ CREATE TABLE usuario(
     senha VARCHAR(255) NOT NULL,
     tipo tipo_usuario NOT NULL,
     cpf_cnpj VARCHAR(20),
+    deleted BOOLEAN DEFAULT FALSE,
     data_criacao TIMESTAMP DEFAULT NOW()
 );
 
@@ -18,6 +19,7 @@ CREATE TABLE contas_a_pagar (
     data_vencimento DATE NOT NULL,
     status status_conta DEFAULT 'Pendente', 
     id_usuario INT REFERENCES usuario(id_user) ON DELETE CASCADE,
+    deleted BOOLEAN DEFAULT FALSE,
     data_criacao TIMESTAMP DEFAULT NOW()
 );
 
@@ -28,6 +30,7 @@ CREATE TABLE parcelas(
     valor DECIMAL(12,2) NOT NULL,
     data_vencimento DATE NOT NULL,
     status status_conta DEFAULT 'Pendente',
+    deleted BOOLEAN DEFAULT FALSE,
     data_criacao TIMESTAMP DEFAULT NOW()
 
 );

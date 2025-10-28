@@ -1,0 +1,72 @@
+### Login do usuário (obter token)
+POST http://localhost:40000/login
+Content-Type: application/json
+
+{
+  "email": "mfavaro53@gmail.com",
+  "senha": "123456"
+}
+
+### Listar todas as parcelas (com autenticação)
+GET http://localhost:40000/getAllParcelas
+Content-Type: application/json
+Authorization: Bearer SEU_TOKEN_AQUI
+
+### Buscar uma parcela por ID (com autenticação)
+POST http://localhost:40000/getParcelasById
+Content-Type: application/json
+Authorization: Bearer SEU_TOKEN_AQUI
+
+{
+  "id_parcela": 2
+}
+
+### Buscar parcelas por conta (com autenticação)
+POST http://localhost:40000/getParcelasByContaPagar
+Content-Type: application/json
+Authorization: Bearer SEU_TOKEN_AQUI
+
+{
+  "id_conta": 1
+}
+
+### Criar uma nova parcela (com autenticação)
+POST http://localhost:40000/insertParcelas
+Content-Type: application/json
+Authorization: Bearer SEU_TOKEN_AQUI
+  
+ {
+  "numero_parcela": 1,
+  "valor": 250.75,
+  "data_vencimento": "2025-10-25",
+  "id_conta": 1
+}
+
+### Atualizar parcela existente (com autenticação)
+POST http://localhost:40000/updateParcelas
+Content-Type: application/json
+Authorization: Bearer SEU_TOKEN_AQUI
+
+{
+  "id_parcela": 1,
+  "data_vencimento": "2025-11-25",
+  "status": "Pago"
+}
+
+### Marcar parcela como paga (com autenticação)
+POST http://localhost:40000/marcarParcelaComoPaga
+Content-Type: application/json
+Authorization: Bearer SEU_TOKEN_AQUI
+
+{
+  "id_parcela": 1
+}
+
+### Deletar parcela (soft delete - com autenticação)
+POST http://localhost:40000/deleteParcelas
+Content-Type: application/json
+Authorization: Bearer SEU_TOKEN_AQUI
+
+{
+  "id_parcela": 1
+}
