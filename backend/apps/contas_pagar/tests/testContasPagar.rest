@@ -10,12 +10,12 @@ Content-Type: application/json
 ### Listar todas as contas (com autenticação)
 GET http://localhost:40000/getAllContasPagar
 Content-Type: application/json
-Authorization: Bearer SEU_TOKEN_AQUI
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoyLCJlbWFpbCI6InRlc3RAdGVzdGUuY29tIiwidGlwbyI6IlBlc3NvYUZpc2ljYSIsImlhdCI6MTc2MTY4NjE3NiwiZXhwIjoxNzYxNzcyNTc2fQ.wT0P7_n6FKuj1ffWU1UPnhHi75XQ-2Qi7itR6EXv4rI
 
 ### Buscar uma conta por ID (com autenticação)
 POST http://localhost:40000/getContasPagarByID
 Content-Type: application/json
-Authorization: Bearer SEU_TOKEN_AQUI
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoyLCJlbWFpbCI6InRlc3RAdGVzdGUuY29tIiwidGlwbyI6IlBlc3NvYUZpc2ljYSIsImlhdCI6MTc2MTY4NjE3NiwiZXhwIjoxNzYxNzcyNTc2fQ.wT0P7_n6FKuj1ffWU1UPnhHi75XQ-2Qi7itR6EXv4rI
 
 {
   "id_contas": 2
@@ -24,7 +24,7 @@ Authorization: Bearer SEU_TOKEN_AQUI
 ### Buscar contas por usuário (com autenticação)
 POST http://localhost:40000/getContasPagarByUsuario
 Content-Type: application/json
-Authorization: Bearer SEU_TOKEN_AQUI
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoyLCJlbWFpbCI6InRlc3RAdGVzdGUuY29tIiwidGlwbyI6IlBlc3NvYUZpc2ljYSIsImlhdCI6MTc2MTY4NjE3NiwiZXhwIjoxNzYxNzcyNTc2fQ.wT0P7_n6FKuj1ffWU1UPnhHi75XQ-2Qi7itR6EXv4rI
 
 {
   "id_usuario": 1
@@ -33,7 +33,7 @@ Authorization: Bearer SEU_TOKEN_AQUI
 ### Criar uma nova conta (com autenticação)
 POST http://localhost:40000/insertContasPagar
 Content-Type: application/json
-Authorization: Bearer SEU_TOKEN_AQUI
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoyLCJlbWFpbCI6InRlc3RAdGVzdGUuY29tIiwidGlwbyI6IlBlc3NvYUZpc2ljYSIsImlhdCI6MTc2MTY4NjE3NiwiZXhwIjoxNzYxNzcyNTc2fQ.wT0P7_n6FKuj1ffWU1UPnhHi75XQ-2Qi7itR6EXv4rI
   
  {
   "descricao": "Comida do cachorro",
@@ -48,7 +48,7 @@ Authorization: Bearer SEU_TOKEN_AQUI
 ### Atualizar conta existente (com autenticação)
 POST http://localhost:40000/updateContasPagar
 Content-Type: application/json
-Authorization: Bearer SEU_TOKEN_AQUI
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoyLCJlbWFpbCI6InRlc3RAdGVzdGUuY29tIiwidGlwbyI6IlBlc3NvYUZpc2ljYSIsImlhdCI6MTc2MTY4NjE3NiwiZXhwIjoxNzYxNzcyNTc2fQ.wT0P7_n6FKuj1ffWU1UPnhHi75XQ-2Qi7itR6EXv4rI
 
 {
   "id_contas": 1,
@@ -61,7 +61,7 @@ Authorization: Bearer SEU_TOKEN_AQUI
 ### Marcar conta como paga (com autenticação)
 POST http://localhost:40000/marcarContaComoPaga
 Content-Type: application/json
-Authorization: Bearer SEU_TOKEN_AQUI
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoyLCJlbWFpbCI6InRlc3RAdGVzdGUuY29tIiwidGlwbyI6IlBlc3NvYUZpc2ljYSIsImlhdCI6MTc2MTY4NjE3NiwiZXhwIjoxNzYxNzcyNTc2fQ.wT0P7_n6FKuj1ffWU1UPnhHi75XQ-2Qi7itR6EXv4rI
 
 {
   "id_contas": 1
@@ -70,7 +70,7 @@ Authorization: Bearer SEU_TOKEN_AQUI
 ### Deletar conta (soft delete - com autenticação)
 POST http://localhost:40000/deleteContasPagar
 Content-Type: application/json
-Authorization: Bearer SEU_TOKEN_AQUI
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoyLCJlbWFpbCI6InRlc3RAdGVzdGUuY29tIiwidGlwbyI6IlBlc3NvYUZpc2ljYSIsImlhdCI6MTc2MTY4NjE3NiwiZXhwIjoxNzYxNzcyNTc2fQ.wT0P7_n6FKuj1ffWU1UPnhHi75XQ-2Qi7itR6EXv4rI
 
 {
   "id_contas": 1

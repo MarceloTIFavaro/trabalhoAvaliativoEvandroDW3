@@ -34,4 +34,6 @@ CREATE TABLE parcelas(
     data_criacao TIMESTAMP DEFAULT NOW()
 
 );
-
+SELECT * FROM usuario;
+INSERT INTO usuario (nome, email, senha, tipo, cpf_cnpj)
+VALUES ('Teste', 'test@teste.com', '$2a$10$LJg78x4XLOHaEL4g/E5lJOI0JYHu2X88/izAfIkqtKWusW5KjJWMO', 'PessoaFisica', '123.456.789-01');
