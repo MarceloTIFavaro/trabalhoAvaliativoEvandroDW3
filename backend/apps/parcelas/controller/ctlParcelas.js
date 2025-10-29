@@ -105,6 +105,22 @@ const marcarParcelaComoPaga = async (req, res) => {
   }
 };
 
+// Gerar parcelas automaticamente
+// const gerarParcelas = async (req, res) => {
+//   try{
+//     const { id_conta, valor_total, numero_parcelas, data_inicial } = req.body;
+
+//     const payload = {
+//       id_conta: parseInt(id_conta),
+//       valor_total: parseFloat(valor_total),
+//       numero_parcelas: parseInt(numero_parcelas),
+//       data_inicial: data_inicial
+//     };
+//   }
+// }
+
+
+
 module.exports = {
   getAllParcelas,
   getParcelasById,

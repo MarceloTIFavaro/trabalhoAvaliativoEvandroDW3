@@ -18,7 +18,7 @@ Content-Type: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoyLCJlbWFpbCI6InRlc3RAdGVzdGUuY29tIiwidGlwbyI6IlBlc3NvYUZpc2ljYSIsImlhdCI6MTc2MTY4NjE3NiwiZXhwIjoxNzYxNzcyNTc2fQ.wT0P7_n6FKuj1ffWU1UPnhHi75XQ-2Qi7itR6EXv4rI
 
 {
-  "id_user": 2
+  "id_user": 1
 }
 
 ### Criar um novo usuário (com autenticação)
