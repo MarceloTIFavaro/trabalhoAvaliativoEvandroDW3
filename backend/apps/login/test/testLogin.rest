@@ -1,0 +1,25 @@
+### Login do usuário (obter token)
+POST http://localhost:40000/login
+Content-Type: application/json
+
+{
+  "email": "test@teste.com",
+  "senha": "123456"
+}
+
+### Logout do usuário
+POST http://localhost:40000/logout
+Content-Type: application/json
+
+### Acesso a rota protegida SEM token (deve falhar)
+GET http://localhost:40000/getAllUsuario
+
+### Acesso a rota protegida COM token inválido (deve falhar)
+GET http://localhost:40000/getAllUsuario
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoxLCJlbWFpbCI6InRlc3RAdGVzdGUuY29tIiwidGlwbyI6IlBlc3NvYUZpc2ljYSIsImlhdCI6MTc2MTc0MTQ1NywiZXhwIjoxNzYxODI3ODU3fQ.jK2CIe3sQb598LZuTrLkw3j3eFtStmRfYVUCljj2AFU
+
+### Acesso a rota protegida COM token válido (cole aqui o token recebido no login)
+GET http://localhost:40000/getAllUsuario
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoxLCJlbWFpbCI6InRlc3RAdGVzdGUuY29tIiwidGlwbyI6IlBlc3NvYUZpc2ljYSIsImlhdCI6MTc2MTc0MTQ1NywiZXhwIjoxNzYxODI3ODU3fQ.jK2CIe3sQb598LZuTrLkw3j3eFtStmRfYVUCljj2AFU
+
+

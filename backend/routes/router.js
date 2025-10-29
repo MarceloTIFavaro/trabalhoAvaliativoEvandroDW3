@@ -3,6 +3,7 @@ const routerApp = express.Router();
 
 // Controllers
 const appUsuario = require("../apps/usuario/controller/ctlUsuario");
+const appLogin = require("../apps/login/controller/ctlLogin");
 const appContasPagar = require("../apps/contas_pagar/controller/ctlContasPagar");
 const appParcelas = require("../apps/parcelas/controller/ctlParcelas");
 
@@ -22,39 +23,39 @@ routerApp.get("/", (req, res) => {
 // --------------------
 // ROTAS DE USUÁRIO
 // --------------------
-// Aqui o JWT vai ser verificado diretamente pelo ctlUsuario
-routerApp.get("/getAllUsuario", appUsuario.AutenticaJWT, appUsuario.getAllUsuario);
-routerApp.post("/getUsuarioByID", appUsuario.AutenticaJWT, appUsuario.getUsuarioByID);
-routerApp.post("/insertUsuario", appUsuario.AutenticaJWT, appUsuario.insertUsuario);
-routerApp.post("/updateUsuario", appUsuario.AutenticaJWT, appUsuario.updateUsuario);
-routerApp.post("/deleteUsuario", appUsuario.AutenticaJWT, appUsuario.deleteUsuario);
+// Aqui o JWT vai ser verificado pelo ctlLogin
+routerApp.get("/getAllUsuario", appLogin.AutenticaJWT, appUsuario.getAllUsuario);
+routerApp.post("/getUsuarioByID", appLogin.AutenticaJWT, appUsuario.getUsuarioByID);
+routerApp.post("/insertUsuario", appLogin.AutenticaJWT, appUsuario.insertUsuario);
+routerApp.post("/updateUsuario", appLogin.AutenticaJWT, appUsuario.updateUsuario);
+routerApp.post("/deleteUsuario", appLogin.AutenticaJWT, appUsuario.deleteUsuario);
 
 // --------------------
 // ROTAS DE AUTENTICAÇÃO
 // --------------------
-routerApp.post("/login", appUsuario.loginUsuario); 
-routerApp.post("/logout", appUsuario.logoutUsuario);
+routerApp.post("/login", appLogin.loginUsuario); 
+routerApp.post("/logout", appLogin.logoutUsuario);
 
 // --------------------
 // ROTAS DE CONTAS A PAGAR
 // --------------------
-routerApp.get("/getAllContasPagar", appUsuario.AutenticaJWT, appContasPagar.getAllContasPagar);
-routerApp.post("/getContasPagarByID", appUsuario.AutenticaJWT, appContasPagar.getContasPagarByID);
-routerApp.post("/getContasPagarByUsuario", appUsuario.AutenticaJWT, appContasPagar.getContasPagarByUsuario);
-routerApp.post("/insertContasPagar", appUsuario.AutenticaJWT, appContasPagar.insertContasPagar);
-routerApp.post("/updateContasPagar", appUsuario.AutenticaJWT, appContasPagar.updateContasPagar);
-routerApp.post("/deleteContasPagar", appUsuario.AutenticaJWT, appContasPagar.deleteContasPagar);
-routerApp.post("/marcarContaComoPaga", appUsuario.AutenticaJWT, appContasPagar.marcarContaComoPaga);
+routerApp.get("/getAllContasPagar", appLogin.AutenticaJWT, appContasPagar.getAllContasPagar);
+routerApp.post("/getContasPagarByID", appLogin.AutenticaJWT, appContasPagar.getContasPagarByID);
+routerApp.post("/getContasPagarByUsuario", appLogin.AutenticaJWT, appContasPagar.getContasPagarByUsuario);
+routerApp.post("/insertContasPagar", appLogin.AutenticaJWT, appContasPagar.insertContasPagar);
+routerApp.post("/updateContasPagar", appLogin.AutenticaJWT, appContasPagar.updateContasPagar);
+routerApp.post("/deleteContasPagar", appLogin.AutenticaJWT, appContasPagar.deleteContasPagar);
+routerApp.post("/marcarContaComoPaga", appLogin.AutenticaJWT, appContasPagar.marcarContaComoPaga);
 
 // --------------------
 // ROTAS DE PARCELAS
 // --------------------
-routerApp.get("/getAllParcelas", appUsuario.AutenticaJWT, appParcelas.getAllParcelas);
-routerApp.post("/getParcelasById", appUsuario.AutenticaJWT, appParcelas.getParcelasById);
-routerApp.post("/getParcelasByContaPagar", appUsuario.AutenticaJWT, appParcelas.getParcelasByConta);
-routerApp.post("/insertParcelas", appUsuario.AutenticaJWT, appParcelas.insertParcelas);
-routerApp.post("/updateParcelas", appUsuario.AutenticaJWT, appParcelas.updateParcelas);
-routerApp.post("/deleteParcelas", appUsuario.AutenticaJWT, appParcelas.deleteParcelas);
-routerApp.post("/marcarParcelaComoPaga", appUsuario.AutenticaJWT, appParcelas.marcarParcelaComoPaga);
+routerApp.get("/getAllParcelas", appLogin.AutenticaJWT, appParcelas.getAllParcelas);
+routerApp.post("/getParcelasById", appLogin.AutenticaJWT, appParcelas.getParcelasById);
+routerApp.post("/getParcelasByContaPagar", appLogin.AutenticaJWT, appParcelas.getParcelasByConta);
+routerApp.post("/insertParcelas", appLogin.AutenticaJWT, appParcelas.insertParcelas);
+routerApp.post("/updateParcelas", appLogin.AutenticaJWT, appParcelas.updateParcelas);
+routerApp.post("/deleteParcelas", appLogin.AutenticaJWT, appParcelas.deleteParcelas);
+routerApp.post("/marcarParcelaComoPaga", appLogin.AutenticaJWT, appParcelas.marcarParcelaComoPaga);
 
 module.exports = routerApp;
