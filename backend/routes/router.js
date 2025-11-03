@@ -57,5 +57,6 @@ routerApp.post("/insertParcelas", appLogin.AutenticaJWT, appParcelas.insertParce
 routerApp.post("/updateParcelas", appLogin.AutenticaJWT, appParcelas.updateParcelas);
 routerApp.post("/deleteParcelas", appLogin.AutenticaJWT, appParcelas.deleteParcelas);
 routerApp.post("/marcarParcelaComoPaga", appLogin.AutenticaJWT, appParcelas.marcarParcelaComoPaga);
+routerApp.post("/gerarParcelas", appLogin.AutenticaJWT, appParcelas.gerarParcelas);
 
 module.exports = routerApp;

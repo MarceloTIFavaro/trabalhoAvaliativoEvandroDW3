@@ -28,11 +28,12 @@ const getParcelasByContaPagar = async (id_conta) => {
 
 // Criar nova Parcela
 const insertParcelas = async (dados) => {
-    const { numero_parcela, valor, data_vencimento, id_conta } = dados;
+    const { numero_parcela, valor, data_vencimento, id_conta, status } = dados;
+    const statusFinal = status || 'Pendente';
     const { rows } = await db.query(
-        `INSERT INTO parcelas (numero_parcela, valor, data_vencimento, id_conta)
-         VALUES ($1, $2, $3, $4) RETURNING *;`,
-        [numero_parcela, valor, data_vencimento, id_conta]
+        `INSERT INTO parcelas (numero_parcela, valor, data_vencimento, id_conta, status)
+         VALUES ($1, $2, $3, $4, $5) RETURNING *;`,
+        [numero_parcela, valor, data_vencimento, id_conta, statusFinal]
     );
     return rows[0];
 };

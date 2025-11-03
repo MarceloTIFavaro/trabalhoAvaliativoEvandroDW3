@@ -106,18 +106,95 @@ const marcarParcelaComoPaga = async (req, res) => {
 };
 
 // Gerar parcelas automaticamente
-// const gerarParcelas = async (req, res) => {
-//   try{
-//     const { id_conta, valor_total, numero_parcelas, data_inicial } = req.body;
+const gerarParcelas = async (req, res) => {
+  try {
+    const { id_conta, numero_parcelas, data_inicial } = req.body;
 
-//     const payload = {
-//       id_conta: parseInt(id_conta),
-//       valor_total: parseFloat(valor_total),
-//       numero_parcelas: parseInt(numero_parcelas),
-//       data_inicial: data_inicial
-//     };
-//   }
-// }
+    // Validações
+    if (!id_conta || !numero_parcelas || !data_inicial) {
+      return res.status(400).json({ error: "Campos obrigatórios: id_conta, numero_parcelas, data_inicial" });
+    }
+
+    const numeroParcelas = parseInt(numero_parcelas);
+    const idConta = parseInt(id_conta);
+
+    // Validar número máximo de parcelas (12)
+    if (numeroParcelas > 12 || numeroParcelas < 1) {
+      return res.status(400).json({ error: "O número de parcelas deve estar entre 1 e 12" });
+    }
+
+    // Verificar se a conta existe e buscar o valor total automaticamente
+    const mdlContasPagar = require("../../contas_pagar/model/mdlContasPagar");
+    const conta = await mdlContasPagar.getContasPagarByID(idConta);
+    if (!conta) {
+      return res.status(404).json({ error: "Conta não encontrada" });
+    }
+
+    // Buscar o valor da conta automaticamente
+    const valorTotal = parseFloat(conta.valor);
+    
+    // Validar valor total
+    if (valorTotal <= 0) {
+      return res.status(400).json({ error: "A conta não possui um valor válido para parcelamento" });
+    }
+
+    // Verificar se já existem parcelas para esta conta
+    const parcelasExistentes = await mdlParcelas.getParcelasByContaPagar(idConta);
+    if (parcelasExistentes.length > 0) {
+      return res.status(400).json({ error: "Esta conta já possui parcelas cadastradas" });
+    }
+
+    // Calcular valor por parcela
+    const valorPorParcela = valorTotal / numeroParcelas;
+
+    // Converter data_inicial para Date
+    const dataInicial = new Date(data_inicial);
+    dataInicial.setHours(0, 0, 0, 0);
+
+    if (isNaN(dataInicial.getTime())) {
+      return res.status(400).json({ error: "Data inicial inválida" });
+    }
+
+    // Gerar as parcelas
+    const parcelasCriadas = [];
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+
+    for (let i = 1; i <= numeroParcelas; i++) {
+      // Calcular data de vencimento (mensal a partir da data inicial)
+      const dataVencimento = new Date(dataInicial);
+      dataVencimento.setMonth(dataInicial.getMonth() + (i - 1));
+      dataVencimento.setHours(0, 0, 0, 0);
+
+      // Determinar status inicial baseado na data de vencimento
+      let status = 'Pendente';
+      if (dataVencimento < hoje) {
+        status = 'Atrasado';
+      }
+
+      // Criar parcela
+      const dadosParcela = {
+        numero_parcela: i,
+        valor: parseFloat(valorPorParcela.toFixed(2)),
+        data_vencimento: dataVencimento.toISOString().split('T')[0], // Formato YYYY-MM-DD
+        id_conta: idConta,
+        status: status
+      };
+
+      const parcela = await mdlParcelas.insertParcelas(dadosParcela);
+      parcelasCriadas.push(mdlParcelas.verificarStatusAutomatico(parcela));
+    }
+
+    res.status(201).json({
+      message: `${numeroParcelas} parcelas geradas com sucesso`,
+      valor_total: valorTotal,
+      valor_por_parcela: parseFloat(valorPorParcela.toFixed(2)),
+      parcelas: parcelasCriadas
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao gerar parcelas", details: error.message });
+  }
+};
 
 
 
@@ -129,4 +206,5 @@ module.exports = {
   updateParcelas,
   deleteParcelas,
   marcarParcelaComoPaga,
+  gerarParcelas,
 };
