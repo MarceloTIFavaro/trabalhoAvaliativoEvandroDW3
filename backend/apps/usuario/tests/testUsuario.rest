@@ -1,3 +1,5 @@
+@token = coloque_o_token_aqui
+
 ### Login do usuário (obter token)
 POST http://localhost:40000/login
 Content-Type: application/json
@@ -10,12 +12,11 @@ Content-Type: application/json
 ### Listar todos os usuários (com autenticação)
 GET http://localhost:40000/getAllUsuario
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoxMiwiZW1haWwiOiJ0ZXN0QHRlc3RlLmNvbSIsInRpcG8iOiJQZXNzb2FGaXNpY2EiLCJpYXQiOjE3NjIxOTg5MDUsImV4cCI6MTc2MjI4NTMwNX0.XFPZU0OQfKh2HNmpsTqmDHhFpFFCS6_2ecTfm8HzUaQ
-
+Authorization: Bearer {{token}}
 ### Buscar um usuário por ID (com autenticação)
 POST http://localhost:40000/getUsuarioByID
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoxMiwiZW1haWwiOiJ0ZXN0QHRlc3RlLmNvbSIsInRpcG8iOiJQZXNzb2FGaXNpY2EiLCJpYXQiOjE3NjIxOTgzNzgsImV4cCI6MTc2MjI4NDc3OH0.rxLYHVt5AbJln1LG35CcZQf9SGgIbQ3wiMDWgSQN5Z0
+Authorization: Bearer {{token}}
 
 
 {
@@ -25,7 +26,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoxMiwiZ
 ### Criar um novo usuário (com autenticação)
 POST http://localhost:40000/insertUsuario
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoxMiwiZW1haWwiOiJ0ZXN0QHRlc3RlLmNvbSIsInRpcG8iOiJQZXNzb2FGaXNpY2EiLCJpYXQiOjE3NjIxOTgzNzgsImV4cCI6MTc2MjI4NDc3OH0.rxLYHVt5AbJln1LG35CcZQf9SGgIbQ3wiMDWgSQN5Z0
+Authorization: Bearer {{token}}
 
 
 {
@@ -39,7 +40,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoxMiwiZ
 ### Atualizar usuário existente (com autenticação)
 POST http://localhost:40000/updateUsuario
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoxMiwiZW1haWwiOiJ0ZXN0QHRlc3RlLmNvbSIsInRpcG8iOiJQZXNzb2FGaXNpY2EiLCJpYXQiOjE3NjIxOTgzNzgsImV4cCI6MTc2MjI4NDc3OH0.rxLYHVt5AbJln1LG35CcZQf9SGgIbQ3wiMDWgSQN5Z0
+Authorization: Bearer {{token}}
 
 
 {
@@ -54,7 +55,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoxMiwiZ
 ### Deletar usuário (soft delete - com autenticação)
 POST http://localhost:40000/deleteUsuario
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoxMiwiZW1haWwiOiJ0ZXN0QHRlc3RlLmNvbSIsInRpcG8iOiJQZXNzb2FGaXNpY2EiLCJpYXQiOjE3NjIxOTgzNzgsImV4cCI6MTc2MjI4NDc3OH0.rxLYHVt5AbJln1LG35CcZQf9SGgIbQ3wiMDWgSQN5Z0
+Authorization: Bearer {{token}}
 
 
 {
@@ -64,6 +65,6 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoxMiwiZ
 ### Logout do usuário (cole aqui o token recebido no login para invalidá-lo)
 POST http://localhost:40000/logout
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoxMiwiZW1haWwiOiJ0ZXN0QHRlc3RlLmNvbSIsInRpcG8iOiJQZXNzb2FGaXNpY2EiLCJpYXQiOjE3NjIxOTgzNzgsImV4cCI6MTc2MjI4NDc3OH0.rxLYHVt5AbJln1LG35CcZQf9SGgIbQ3wiMDWgSQN5Z0
+Authorization: Bearer {{token}}
 
 {}

@@ -1,3 +1,5 @@
+@token = coloque_o_token_aqui
+
 ### Login do usuário (obter token)
 POST http://localhost:40000/login
 Content-Type: application/json
@@ -10,12 +12,12 @@ Content-Type: application/json
 ### Listar todas as parcelas (com autenticação)
 GET http://localhost:40000/getAllParcelas
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoyLCJlbWFpbCI6InRlc3RAdGVzdGUuY29tIiwidGlwbyI6IlBlc3NvYUZpc2ljYSIsImlhdCI6MTc2MTY4NjE3NiwiZXhwIjoxNzYxNzcyNTc2fQ.wT0P7_n6FKuj1ffWU1UPnhHi75XQ-2Qi7itR6EXv4rI
+Authorization: Bearer {{token}}
 
 ### Buscar uma parcela por ID (com autenticação)
 POST http://localhost:40000/getParcelasById
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoyLCJlbWFpbCI6InRlc3RAdGVzdGUuY29tIiwidGlwbyI6IlBlc3NvYUZpc2ljYSIsImlhdCI6MTc2MTY4NjE3NiwiZXhwIjoxNzYxNzcyNTc2fQ.wT0P7_n6FKuj1ffWU1UPnhHi75XQ-2Qi7itR6EXv4rI
+Authorization: Bearer {{token}}
 
 {
   "id_parcela": 2
@@ -24,7 +26,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoyLCJlb
 ### Buscar parcelas por conta (com autenticação)
 POST http://localhost:40000/getParcelasByContaPagar
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoyLCJlbWFpbCI6InRlc3RAdGVzdGUuY29tIiwidGlwbyI6IlBlc3NvYUZpc2ljYSIsImlhdCI6MTc2MTY4NjE3NiwiZXhwIjoxNzYxNzcyNTc2fQ.wT0P7_n6FKuj1ffWU1UPnhHi75XQ-2Qi7itR6EXv4rI
+Authorization: Bearer {{token}}
 
 {
   "id_conta": 1
