@@ -81,7 +81,8 @@ const GerarParcelas = async (req, res) => {
     const payload = {
       id_conta: formData.id_conta,
       numero_parcelas: formData.numero_parcelas,
-      data_inicial: formData.data_inicial
+      data_inicial: formData.data_inicial,
+      intervalo_dias: formData.intervalo_dias || 30
     };
 
     const resp = await axios.post(process.env.SERVIDOR_BACKEND + "/gerarParcelas", payload, {

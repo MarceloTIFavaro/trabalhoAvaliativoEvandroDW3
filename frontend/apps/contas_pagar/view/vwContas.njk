@@ -549,20 +549,72 @@
   
   // Marcar conta como paga
   async function pagarConta(id) {
-    if (!confirm('Deseja marcar esta conta como paga?')) {
-      return;
-    }
-    
     try {
-      const response = await axios.post('/contaspagar/pagar', { id_contas: id });
+      // Buscar a conta no array global para ver se tem parcelas
+      const conta = contasGlobal.find(c => c.id_contas === id);
       
-      if (response.data.status === 'ok') {
-        showToast('Conta marcada como paga!', 'success');
-        carregarContas();
+      if (!conta) {
+        showToast('Conta não encontrada', 'error');
+        return;
+      }
+      
+      // Se a conta tem parcelas, pagar a próxima parcela pendente
+      if (conta.parcelas && conta.parcelas.length > 0) {
+        const parcelasPendentes = conta.parcelas
+          .filter(p => p.status !== 'Pago')
+          .sort((a, b) => new Date(a.data_vencimento) - new Date(b.data_vencimento)); // Ordenar por data
+        
+        if (parcelasPendentes.length === 0) {
+          showToast('Todas as parcelas já foram pagas!', 'info');
+          return;
+        }
+        
+        const proximaParcela = parcelasPendentes[0];
+        const parcelasPagas = conta.parcelas.filter(p => p.status === 'Pago').length;
+        const totalParcelas = conta.parcelas.length;
+        
+        if (!confirm(`Pagar parcela ${proximaParcela.numero_parcela}? (${parcelasPagas}/${totalParcelas})`)) {
+          return;
+        }
+        
+        const response = await axios.post('/parcelas/pagar', { id_parcela: proximaParcela.id_parcela });
+        
+        if (response.data.status === 'ok') {
+          // Recarregar parcelas para verificar se todas foram pagas
+          const parcelasResponse = await axios.post('/parcelas/listar', { id_conta: id });
+          if (parcelasResponse.data.status === 'ok') {
+            const parcelasAtualizadas = parcelasResponse.data.parcelas || [];
+            const todasPagas = parcelasAtualizadas.every(p => p.status === 'Pago');
+            
+            if (todasPagas) {
+              // Se todas parcelas pagas, marcar a conta como paga também
+              await axios.post('/contaspagar/pagar', { id_contas: id });
+              showToast('Todas as parcelas foram pagas! Conta finalizada!', 'success');
+            } else {
+              showToast('Parcela paga com sucesso!', 'success');
+            }
+          } else {
+            showToast('Parcela paga com sucesso!', 'success');
+          }
+          
+          carregarContas();
+        }
+      } else {
+        // Conta sem parcelas - comportamento normal
+        if (!confirm('Deseja marcar esta conta como paga?')) {
+          return;
+        }
+        
+        const response = await axios.post('/contaspagar/pagar', { id_contas: id });
+        
+        if (response.data.status === 'ok') {
+          showToast('Conta marcada como paga!', 'success');
+          carregarContas();
+        }
       }
     } catch (error) {
-      console.error('Erro ao marcar conta como paga:', error);
-      const errorMsg = error.response?.data?.msg || 'Erro ao marcar conta como paga';
+      console.error('Erro ao marcar conta/parcela como paga:', error);
+      const errorMsg = error.response?.data?.msg || 'Erro ao processar pagamento';
       showToast(errorMsg, 'error');
     }
   }
