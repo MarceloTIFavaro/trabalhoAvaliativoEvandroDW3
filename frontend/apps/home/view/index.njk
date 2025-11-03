@@ -143,12 +143,91 @@
     });
   }
   
-  // Função para verificar se a conta está atrasada
-  function verificarAtrasada(dataVencimento) {
+  // Função auxiliar para calcular o status efetivo da conta baseado nas parcelas
+  function calcularStatusEfetivo(conta) {
+    // Se a conta já está paga, mantém como pago
+    if (conta.status === 'Pago') {
+      return 'Pago';
+    }
+    
+    // Se a conta tem parcelas, calcular baseado nas parcelas
+    if (conta.parcelas && conta.parcelas.length > 0) {
+      // Filtrar parcelas não pagas
+      const parcelasNaoPagas = conta.parcelas.filter(p => 
+        p.status !== 'Pago' && p.status !== 'PAGO' && p.status !== 'pago'
+      );
+      
+      // Se todas as parcelas foram pagas, a conta deve estar paga
+      if (parcelasNaoPagas.length === 0) {
+        return 'Pago';
+      }
+      
+      // Verificar se há parcelas atrasadas pendentes (não pagas)
+      const temParcelasAtrasadas = parcelasNaoPagas.some(p => {
+        // Verificar se a parcela está atrasada pela data
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+        const vencimento = new Date(p.data_vencimento);
+        vencimento.setHours(0, 0, 0, 0);
+        return (p.status === 'Atrasado' || p.status === 'ATRASADO' || p.status === 'atrasado') || vencimento < hoje;
+      });
+      
+      // Se tem parcelas atrasadas pendentes, status é Atrasado
+      if (temParcelasAtrasadas) {
+        return 'Atrasado';
+      }
+      
+      // Se há parcelas pendentes mas nenhuma atrasada, status é Pendente
+      return 'Pendente';
+    }
+    
+    // Para contas sem parcelas, verificar se está atrasada pela data
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
-    const vencimento = new Date(dataVencimento);
-    return vencimento < hoje;
+    const vencimento = new Date(conta.data_vencimento);
+    vencimento.setHours(0, 0, 0, 0);
+    
+    if (conta.status === 'Pago') {
+      return 'Pago';
+    } else if (conta.status === 'Atrasado' || (conta.status !== 'Pago' && vencimento < hoje)) {
+      return 'Atrasado';
+    }
+    
+    return conta.status || 'Pendente';
+  }
+  
+  // Função auxiliar para obter o vencimento efetivo da conta (próxima parcela pendente se tiver parcelas)
+  function obterVencimentoEfetivo(conta) {
+    // Se a conta tem parcelas, buscar a próxima parcela pendente
+    if (conta.parcelas && conta.parcelas.length > 0) {
+      // Filtrar parcelas não pagas
+      const parcelasPendentes = conta.parcelas.filter(p => 
+        p.status !== 'Pago' && p.status !== 'PAGO' && p.status !== 'pago'
+      );
+      
+      if (parcelasPendentes.length > 0) {
+        // Ordenar por data de vencimento e pegar a primeira (mais próxima)
+        parcelasPendentes.sort((a, b) => {
+          const dataA = new Date(a.data_vencimento);
+          const dataB = new Date(b.data_vencimento);
+          return dataA - dataB;
+        });
+        
+        // Retornar o vencimento da próxima parcela pendente
+        return parcelasPendentes[0].data_vencimento;
+      } else {
+        // Se todas as parcelas estão pagas, retornar o vencimento da última parcela
+        const parcelasOrdenadas = [...conta.parcelas].sort((a, b) => {
+          const dataA = new Date(a.data_vencimento);
+          const dataB = new Date(b.data_vencimento);
+          return dataB - dataA; // Ordenar do mais recente para o mais antigo
+        });
+        return parcelasOrdenadas[0]?.data_vencimento || conta.data_vencimento;
+      }
+    }
+    
+    // Se não tem parcelas, retornar o vencimento normal da conta
+    return conta.data_vencimento;
   }
   
   // Função para formatar data
@@ -170,21 +249,34 @@
       if (response.data.status === 'ok') {
         const contas = response.data.contas;
         
-        // Calcular totais
+        // Carregar parcelas para cada conta
+        for (let i = 0; i < contas.length; i++) {
+          try {
+            const parcelasResponse = await axios.post('/parcelas/listar', { id_conta: contas[i].id_contas });
+            if (parcelasResponse.data.status === 'ok') {
+              contas[i].parcelas = parcelasResponse.data.parcelas || [];
+            }
+          } catch (error) {
+            console.error(`Erro ao carregar parcelas da conta ${contas[i].id_contas}:`, error);
+            contas[i].parcelas = [];
+          }
+        }
+        
+        // Calcular totais usando status efetivo
         let totalPendentes = 0;
         let totalAtrasadas = 0;
         let totalPagas = 0;
         const contasAtrasadas = [];
         
         contas.forEach(conta => {
-          const isAtrasada = verificarAtrasada(conta.data_vencimento);
+          const statusEfetivo = calcularStatusEfetivo(conta);
           
-          if (conta.status === 'Pago') {
+          if (statusEfetivo === 'Pago') {
             totalPagas++;
-          } else if (conta.status === 'Atrasado' || (conta.status !== 'Pago' && isAtrasada)) {
+          } else if (statusEfetivo === 'Atrasado') {
             totalAtrasadas++;
             contasAtrasadas.push(conta);
-          } else if (conta.status === 'Pendente') {
+          } else if (statusEfetivo === 'Pendente') {
             totalPendentes++;
           }
         });
@@ -206,30 +298,43 @@
               </h5>
               <hr>
               <ul class="mb-0">
-                ${contasAtrasadas.map(c => `<li><strong>${c.descricao}</strong> - Vencimento: ${formatarData(c.data_vencimento)}</li>`).join('')}
+                ${contasAtrasadas.map(c => {
+                  const vencimentoEfetivo = obterVencimentoEfetivo(c);
+                  return `<li><strong>${c.descricao}</strong> - Vencimento: ${formatarData(vencimentoEfetivo)} - ${formatarValor(c.valor)}</li>`;
+                }).join('')}
               </ul>
               <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
           `;
+        } else {
+          // Limpar notificações se não há contas atrasadas
+          const notificacoesDiv = document.getElementById('notificacoesAtrasadas');
+          notificacoesDiv.innerHTML = '';
         }
         
-        // Preencher tabela de contas recentes
+        // Preencher tabela de contas recentes usando status e vencimento efetivo
         const tbody = document.getElementById('tbodyContasRecentes');
         if (contas.length === 0) {
           tbody.innerHTML = '<tr><td colspan="4" class="text-center">Nenhuma conta cadastrada</td></tr>';
         } else {
           const contasRecentes = contas.slice(0, 5);
           tbody.innerHTML = contasRecentes.map(conta => {
-            const isAtrasada = verificarAtrasada(conta.data_vencimento);
-            const statusClass = conta.status === 'Pago' ? 'success' : (conta.status === 'Atrasado' || (conta.status !== 'Pago' && isAtrasada) ? 'danger' : 'warning');
-            const rowClass = (conta.status !== 'Pago' && (conta.status === 'Atrasado' || isAtrasada)) ? 'table-danger' : '';
+            const statusEfetivo = calcularStatusEfetivo(conta);
+            const vencimentoEfetivo = obterVencimentoEfetivo(conta);
+            const statusClass = statusEfetivo === 'Pago' ? 'success' : (statusEfetivo === 'Atrasado' ? 'danger' : 'warning');
+            const rowClass = statusEfetivo === 'Atrasado' ? 'table-danger' : '';
             
             return `
               <tr class="${rowClass}">
                 <td>${conta.descricao}</td>
                 <td>${formatarValor(conta.valor)}</td>
-                <td>${formatarData(conta.data_vencimento)}</td>
-                <td><span class="badge bg-${statusClass}">${conta.status}</span></td>
+                <td>${formatarData(vencimentoEfetivo)}</td>
+                <td>
+                  <span class="badge bg-${statusClass}">
+                    ${statusEfetivo}
+                    ${statusEfetivo === 'Atrasado' ? '<i class="fas fa-exclamation-triangle ms-1"></i>' : ''}
+                  </span>
+                </td>
               </tr>
             `;
           }).join('');

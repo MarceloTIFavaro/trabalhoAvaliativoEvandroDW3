@@ -93,6 +93,72 @@ const verificarStatusAutomatico = (conta) => {
     return conta;
 }
 
+// Recalcular status da conta baseado nas parcelas
+const recalcularStatusContaBaseadoNasParcelas = async (id_contas) => {
+    try {
+        // Buscar a conta
+        const conta = await getContasPagarByID(id_contas);
+        if (!conta) {
+            return null;
+        }
+
+        // Se a conta já está marcada como paga, não precisa recalcular
+        if (conta.status === 'Pago') {
+            return conta;
+        }
+
+        // Buscar todas as parcelas da conta
+        const mdlParcelas = require("../../parcelas/model/mdlParcelas");
+        const parcelas = await mdlParcelas.getParcelasByContaPagar(id_contas);
+
+        // Se não tem parcelas, usar o status baseado na data de vencimento da conta
+        if (!parcelas || parcelas.length === 0) {
+            return verificarStatusAutomatico(conta);
+        }
+
+        // Verificar status das parcelas
+        const todasParcelasPagas = parcelas.every(p => p.status === 'Pago' || p.status === 'PAGO' || p.status === 'pago');
+        const temParcelasAtrasadas = parcelas.some(p => {
+            // Verificar se a parcela está atrasada E não está paga
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0);
+            const dataVencimento = new Date(p.data_vencimento);
+            dataVencimento.setHours(0, 0, 0, 0);
+            
+            const estaAtrasada = dataVencimento < hoje;
+            const naoEstaPaga = p.status !== 'Pago' && p.status !== 'PAGO' && p.status !== 'pago';
+            
+            return estaAtrasada && naoEstaPaga;
+        });
+
+        // Determinar novo status da conta
+        let novoStatus;
+        if (todasParcelasPagas) {
+            novoStatus = 'Pago';
+        } else if (temParcelasAtrasadas) {
+            novoStatus = 'Atrasado';
+        } else {
+            novoStatus = 'Pendente';
+        }
+
+        // Atualizar o status da conta no banco de dados apenas se mudou
+        if (conta.status !== novoStatus) {
+            const { rows } = await db.query(
+                `UPDATE contas_a_pagar
+                 SET status = $1
+                 WHERE id_contas = $2 AND deleted = false
+                 RETURNING *;`,
+                [novoStatus, id_contas]
+            );
+            return rows[0];
+        }
+
+        return conta;
+    } catch (error) {
+        console.error('Erro ao recalcular status da conta:', error);
+        throw error;
+    }
+}
 
 module.exports = {
     getAllContasPagar,
@@ -103,4 +169,5 @@ module.exports = {
     deleteContasPagar,
     marcarContaComoPaga,
     verificarStatusAutomatico,
+    recalcularStatusContaBaseadoNasParcelas,
 }

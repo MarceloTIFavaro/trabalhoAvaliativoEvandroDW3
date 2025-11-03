@@ -96,12 +96,27 @@ const marcarParcelaComoPaga = async (req, res) => {
 
     if (!parcela) return res.status(404).json({ error: "Parcela não encontrada" });
 
+    // Garantir que o status está correto (caso o banco retorne com formatação diferente)
+    if (parcela.status) {
+      parcela.status = 'Pago';
+    }
+
+    // IMPORTANTE: Recalcular o status da conta baseado nas parcelas após marcar uma parcela como paga
+    try {
+      const mdlContasPagar = require("../../contas_pagar/model/mdlContasPagar");
+      await mdlContasPagar.recalcularStatusContaBaseadoNasParcelas(parcela.id_conta);
+    } catch (error) {
+      console.error('Erro ao recalcular status da conta após pagar parcela:', error);
+      // Não falhar a operação se houver erro no recálculo, apenas logar
+    }
+
     res.status(200).json({
+      status: 'ok',
       message: "Parcela marcada como paga com sucesso",
       parcela
     });
   } catch (error) {
-    res.status(500).json({ error: "Erro ao marcar parcela como paga", details: error.message });
+    res.status(500).json({ status: 'error', error: "Erro ao marcar parcela como paga", details: error.message });
   }
 };
 

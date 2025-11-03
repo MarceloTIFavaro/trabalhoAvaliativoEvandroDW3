@@ -104,19 +104,19 @@
                 <label for="numeroParcelas" class="form-label">
                   <i class="fas fa-list-ol"></i> Número de Parcelas (máx. 12)
                 </label>
-                <input type="number" class="form-control" id="numeroParcelas" min="1" max="12" placeholder="Ex: 3" required oninput="calcularParcelas()">
+                <input type="number" class="form-control" id="numeroParcelas" min="1" max="12" placeholder="Ex: 3" oninput="calcularParcelas()">
               </div>
               <div class="col-md-4 mb-3">
                 <label for="dataPrimeiraParcela" class="form-label">
                   <i class="fas fa-calendar-alt"></i> Data da 1ª Parcela *
                 </label>
-                <input type="date" class="form-control" id="dataPrimeiraParcela" required onchange="calcularParcelas()">
+                <input type="date" class="form-control" id="dataPrimeiraParcela" onchange="calcularParcelas()">
               </div>
               <div class="col-md-4 mb-3">
                 <label for="intervaloDias" class="form-label">
                   <i class="fas fa-calendar-day"></i> Intervalo entre parcelas (dias) *
                 </label>
-                <input type="number" class="form-control" id="intervaloDias" min="1" value="30" required placeholder="Ex: 30" oninput="calcularParcelas()">
+                <input type="number" class="form-control" id="intervaloDias" min="1" value="30" placeholder="Ex: 30" oninput="calcularParcelas()">
               </div>
             </div>
             
@@ -199,6 +199,110 @@
     return parseFloat(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   }
   
+  // Função auxiliar para calcular o status efetivo da conta baseado nas parcelas
+  function calcularStatusEfetivo(conta) {
+    // Se a conta já está paga, mantém como pago
+    if (conta.status === 'Pago') {
+      return 'Pago';
+    }
+    
+    // Se a conta tem parcelas, calcular baseado nas parcelas
+    if (conta.parcelas && conta.parcelas.length > 0) {
+      // Filtrar parcelas não pagas
+      const parcelasNaoPagas = conta.parcelas.filter(p => 
+        p.status !== 'Pago' && p.status !== 'PAGO' && p.status !== 'pago'
+      );
+      
+      // Se todas as parcelas foram pagas, a conta deve estar paga
+      if (parcelasNaoPagas.length === 0) {
+        return 'Pago';
+      }
+      
+      // Verificar se há parcelas atrasadas pendentes (não pagas)
+      const temParcelasAtrasadas = parcelasNaoPagas.some(p => 
+        p.status === 'Atrasado' || p.status === 'ATRASADO' || p.status === 'atrasado'
+      );
+      
+      // Se tem parcelas atrasadas pendentes, status é Atrasado
+      if (temParcelasAtrasadas) {
+        return 'Atrasado';
+      }
+      
+      // Se há parcelas pendentes mas nenhuma atrasada, status é Pendente
+      return 'Pendente';
+    }
+    
+    // Para contas sem parcelas, usar o status do backend
+    return conta.status || 'Pendente';
+  }
+  
+     // Função para atualizar notificações de contas atrasadas
+   function atualizarNotificacoesAtrasadas() {
+     // Verificar contas atrasadas usando a função calcularStatusEfetivo
+     const contasAtrasadas = contasGlobal.filter(conta => {
+       const statusEfetivo = calcularStatusEfetivo(conta);
+       return statusEfetivo === 'Atrasado';
+     });
+     
+     const notificacoesDiv = document.getElementById('notificacoesAtrasadas');
+     
+     if (contasAtrasadas.length > 0) {
+       notificacoesDiv.innerHTML = `
+         <div class="alert alert-danger alert-dismissible fade show" role="alert">
+           <h5 class="alert-heading">
+             <i class="fas fa-exclamation-triangle"></i> 
+             Atenção! Você tem ${contasAtrasadas.length} conta(s) atrasada(s)
+           </h5>
+           <hr>
+           <ul class="mb-0">
+             ${contasAtrasadas.map(c => {
+               const vencimentoEfetivo = obterVencimentoEfetivo(c);
+               return `<li><strong>${c.descricao}</strong> - Vencimento: ${formatarData(vencimentoEfetivo)} - ${formatarValor(c.valor)}</li>`;
+             }).join('')}
+           </ul>
+           <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+         </div>
+       `;
+     } else {
+       // Limpar notificações se não há contas atrasadas
+       notificacoesDiv.innerHTML = '';
+     }
+   }
+
+   // Função auxiliar para obter o vencimento efetivo da conta (próxima parcela pendente se tiver parcelas)
+  function obterVencimentoEfetivo(conta) {
+    // Se a conta tem parcelas, buscar a próxima parcela pendente
+    if (conta.parcelas && conta.parcelas.length > 0) {
+      // Filtrar parcelas não pagas
+      const parcelasPendentes = conta.parcelas.filter(p => 
+        p.status !== 'Pago' && p.status !== 'PAGO' && p.status !== 'pago'
+      );
+      
+      if (parcelasPendentes.length > 0) {
+        // Ordenar por data de vencimento e pegar a primeira (mais próxima)
+        parcelasPendentes.sort((a, b) => {
+          const dataA = new Date(a.data_vencimento);
+          const dataB = new Date(b.data_vencimento);
+          return dataA - dataB;
+        });
+        
+        // Retornar o vencimento da próxima parcela pendente
+        return parcelasPendentes[0].data_vencimento;
+      } else {
+        // Se todas as parcelas estão pagas, retornar o vencimento da última parcela
+        const parcelasOrdenadas = [...conta.parcelas].sort((a, b) => {
+          const dataA = new Date(a.data_vencimento);
+          const dataB = new Date(b.data_vencimento);
+          return dataB - dataA; // Ordenar do mais recente para o mais antigo
+        });
+        return parcelasOrdenadas[0]?.data_vencimento || conta.data_vencimento;
+      }
+    }
+    
+    // Se não tem parcelas, retornar o vencimento normal da conta
+    return conta.data_vencimento;
+  }
+  
   // Carregar contas
   async function carregarContas() {
     try {
@@ -207,40 +311,23 @@
       if (response.data.status === 'ok') {
         contasGlobal = response.data.contas;
         
-        // Carregar parcelas para cada conta
-        for (let i = 0; i < contasGlobal.length; i++) {
-          try {
-            const parcelasResponse = await axios.post('/parcelas/listar', { id_conta: contasGlobal[i].id_contas });
-            if (parcelasResponse.data.status === 'ok') {
-              contasGlobal[i].parcelas = parcelasResponse.data.parcelas || [];
-            }
-          } catch (error) {
-            console.error(`Erro ao carregar parcelas da conta ${contasGlobal[i].id_contas}:`, error);
-            contasGlobal[i].parcelas = [];
-          }
-        }
-        
-        renderizarContas(contasGlobal);
-        
-        // Verificar contas atrasadas (o status já vem calculado do backend)
-        const contasAtrasadas = contasGlobal.filter(c => c.status === 'Atrasado');
-        
-        if (contasAtrasadas.length > 0) {
-          const notificacoesDiv = document.getElementById('notificacoesAtrasadas');
-          notificacoesDiv.innerHTML = `
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-              <h5 class="alert-heading">
-                <i class="fas fa-exclamation-triangle"></i> 
-                Atenção! Você tem ${contasAtrasadas.length} conta(s) atrasada(s)
-              </h5>
-              <hr>
-              <ul class="mb-0">
-                ${contasAtrasadas.map(c => `<li><strong>${c.descricao}</strong> - Vencimento: ${formatarData(c.data_vencimento)} - ${formatarValor(c.valor)}</li>`).join('')}
-              </ul>
-              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-          `;
-        }
+                 // Carregar parcelas para cada conta
+         for (let i = 0; i < contasGlobal.length; i++) {
+           try {
+             const parcelasResponse = await axios.post('/parcelas/listar', { id_conta: contasGlobal[i].id_contas });
+             if (parcelasResponse.data.status === 'ok') {
+               contasGlobal[i].parcelas = parcelasResponse.data.parcelas || [];
+             }
+           } catch (error) {
+             console.error(`Erro ao carregar parcelas da conta ${contasGlobal[i].id_contas}:`, error);
+             contasGlobal[i].parcelas = [];
+           }
+         }
+         
+         renderizarContas(contasGlobal);
+         
+         // Atualizar notificações de contas atrasadas usando o status efetivo calculado
+         atualizarNotificacoesAtrasadas();
       }
     } catch (error) {
       console.error('Erro ao carregar contas:', error);
@@ -248,33 +335,34 @@
     }
   }
   
-  // Renderizar contas na tabela
-  function renderizarContas(contas) {
-    const tbody = document.getElementById('tbodyContas');
-    
-    if (contas.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" class="text-center">Nenhuma conta cadastrada</td></tr>';
-      return;
-    }
-    
-    
-    tbody.innerHTML = contas.map(conta => {
-      const statusClass = conta.status === 'Pago' ? 'success' : (conta.status === 'Atrasado' ? 'danger' : 'warning');
+     // Renderizar contas na tabela
+   function renderizarContas(contas) {
+     const tbody = document.getElementById('tbodyContas');
+     
+     if (contas.length === 0) {
+       tbody.innerHTML = '<tr><td colspan="6" class="text-center">Nenhuma conta cadastrada</td></tr>';
+       return;
+     }
+     
+     tbody.innerHTML = contas.map(conta => {
+       // Recalcular status efetivo baseado nas parcelas atuais
+       const statusEfetivo = calcularStatusEfetivo(conta);
+       const statusClass = statusEfetivo === 'Pago' ? 'success' : (statusEfetivo === 'Atrasado' ? 'danger' : 'warning');
+       
+       // IMPORTANTE: Só fica vermelha se realmente estiver atrasada
+       const rowClass = statusEfetivo === 'Atrasado' ? 'table-danger conta-atrasada' : '';
       
-      // IMPORTANTE: Contas pagas NUNCA ficam vermelhas, mesmo se estavam atrasadas
-      const rowClass = (conta.status === 'Atrasado' && conta.status !== 'Pago') ? 'table-danger conta-atrasada' : '';
-      
-      // Definir botões de ação baseado no status
-      let botoesAcao = '';
-      
-      // Mostrar botão Pagar se a conta não estiver paga
-      if (conta.status !== 'Pago') {
-        botoesAcao += `
-          <button class="btn btn-sm btn-success me-1" onclick="pagarConta(${conta.id_contas})" title="Marcar como Pago">
-            <i class="fas fa-check-circle"></i> Pagar
-          </button>
-        `;
-      }
+             // Definir botões de ação baseado no status efetivo (calculado)
+       let botoesAcao = '';
+       
+       // Mostrar botão Pagar se a conta não estiver paga (usar status efetivo)
+       if (statusEfetivo !== 'Pago') {
+         botoesAcao += `
+           <button class="btn btn-sm btn-success me-1" onclick="pagarConta(${conta.id_contas})" title="Marcar como Pago">
+             <i class="fas fa-check-circle"></i> Pagar
+           </button>
+         `;
+       }
       
       // Sempre permitir editar e deletar
       botoesAcao += `
@@ -286,76 +374,85 @@
         </button>
       `;
       
-      // Calcular informações de parcelas
-      let infoParcelas = '';
-      if (conta.parcelas && conta.parcelas.length > 0) {
-        const parcelasPagas = conta.parcelas.filter(p => p.status === 'Pago').length;
-        const totalParcelas = conta.parcelas.length;
-        const parcelasPendentes = totalParcelas - parcelasPagas;
-        
-        let badgeClass = 'warning';
-        if (parcelasPagas === totalParcelas) {
-          badgeClass = 'success';
-        } else if (parcelasPendentes > 0 && conta.parcelas.some(p => p.status === 'Atrasado')) {
-          badgeClass = 'danger';
-        }
-        
-        infoParcelas = `
-          <div class="text-center">
-            <span class="badge bg-${badgeClass}">
-              <i class="fas fa-calendar-check"></i> ${parcelasPagas}/${totalParcelas}
-            </span>
-            <br>
-            <small class="text-muted">${parcelasPendentes} pendente(s)</small>
-          </div>
-        `;
-      } else {
-        infoParcelas = '<span class="text-muted text-center d-block">Sem parcelas</span>';
-      }
+             // Calcular informações de parcelas
+       let infoParcelas = '';
+       if (conta.parcelas && conta.parcelas.length > 0) {
+         const parcelasPagas = conta.parcelas.filter(p => p.status === 'Pago').length;
+         const totalParcelas = conta.parcelas.length;
+         const parcelasPendentes = totalParcelas - parcelasPagas;
+         
+         let badgeClass = 'warning';
+         if (parcelasPagas === totalParcelas) {
+           badgeClass = 'success';
+         } else if (parcelasPendentes > 0 && conta.parcelas.some(p => p.status === 'Atrasado')) {
+           badgeClass = 'danger';
+         }
+         
+         infoParcelas = `
+           <div class="text-center">
+             <span class="badge bg-${badgeClass}">
+               <i class="fas fa-calendar-check"></i> ${parcelasPagas}/${totalParcelas}
+             </span>
+             <br>
+             <small class="text-muted">${parcelasPendentes} pendente(s)</small>
+           </div>
+         `;
+       } else {
+         infoParcelas = '<span class="text-muted text-center d-block">Sem parcelas</span>';
+       }
+      
+      // Obter vencimento efetivo (próxima parcela pendente se tiver parcelas)
+      const vencimentoEfetivo = obterVencimentoEfetivo(conta);
       
       return `
         <tr class="${rowClass}">
           <td><strong>${conta.descricao}</strong></td>
           <td><strong>${formatarValor(conta.valor)}</strong></td>
-          <td>${formatarData(conta.data_vencimento)}</td>
+          <td>${formatarData(vencimentoEfetivo)}</td>
           <td>
             <span class="badge bg-${statusClass}">
-              ${conta.status}
-              ${conta.status === 'Atrasado' ? '<i class="fas fa-exclamation-triangle ms-1"></i>' : ''}
+              ${statusEfetivo}
+              ${statusEfetivo === 'Atrasado' ? '<i class="fas fa-exclamation-triangle ms-1"></i>' : ''}
             </span>
           </td>
-          <td>${infoParcelas}</td>
-          <td class="text-nowrap">
-            ${botoesAcao}
-          </td>
+                     <td>${infoParcelas}</td>
+           <td class="text-nowrap">
+             ${botoesAcao}
+           </td>
         </tr>
       `;
     }).join('');
   }
   
-  // Filtro de status
-  document.getElementById('filtroStatus').addEventListener('change', function() {
-    const filtro = this.value;
-    
-    if (filtro === '') {
-      renderizarContas(contasGlobal);
-    } else {
-      const contasFiltradas = contasGlobal.filter(conta => conta.status === filtro);
-      renderizarContas(contasFiltradas);
-    }
-  });
+     // Filtro de status - usar status efetivo calculado
+   document.getElementById('filtroStatus').addEventListener('change', function() {
+     const filtro = this.value;
+     
+     if (filtro === '') {
+       renderizarContas(contasGlobal);
+     } else {
+       const contasFiltradas = contasGlobal.filter(conta => {
+         const statusEfetivo = calcularStatusEfetivo(conta);
+         return statusEfetivo === filtro;
+       });
+       renderizarContas(contasFiltradas);
+     }
+   });
   
-  // Abrir modal para nova conta
-  function abrirModalNovaConta() {
-    document.getElementById('modalTitulo').textContent = 'Nova Conta';
-    document.getElementById('formConta').reset();
-    document.getElementById('contaId').value = '';
-    document.getElementById('parcelarConta').checked = false;
-    document.getElementById('camposParcelas').style.display = 'none';
-    document.getElementById('numeroParcelas').value = '';
-    document.getElementById('dataPrimeiraParcela').value = '';
-    document.getElementById('previewParcelas').style.display = 'none';
-  }
+     // Abrir modal para nova conta
+   function abrirModalNovaConta() {
+     document.getElementById('modalTitulo').textContent = 'Nova Conta';
+     document.getElementById('formConta').reset();
+     document.getElementById('contaId').value = '';
+     document.getElementById('parcelarConta').checked = false;
+     document.getElementById('camposParcelas').style.display = 'none';
+     document.getElementById('numeroParcelas').value = '';
+     document.getElementById('dataPrimeiraParcela').value = '';
+     document.getElementById('intervaloDias').value = '30';
+     document.getElementById('previewParcelas').style.display = 'none';
+     // Garantir que os campos estejam configurados corretamente
+     toggleParcelas();
+   }
 
   // Toggle campos de parcelas
   function toggleParcelas() {
@@ -456,76 +553,105 @@
     new bootstrap.Modal(document.getElementById('modalConta')).show();
   }
 
-  // Salvar conta
-  document.getElementById('formConta').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const id = document.getElementById('contaId').value;
-    const parcelarConta = document.getElementById('parcelarConta').checked;
-    
-    // Se está parcelando, usar a data da primeira parcela como vencimento
-    const dataVencimento = parcelarConta 
-      ? document.getElementById('dataPrimeiraParcela').value 
-      : document.getElementById('contaVencimento').value;
-    
-    const dados = {
-      descricao: document.getElementById('contaDescricao').value,
-      valor: parseFloat(document.getElementById('contaValor').value),
-      data_vencimento: dataVencimento
-      // Status não é mais enviado - será definido automaticamente como 'Pendente'
-    };
-    
-    // Validação: impedir valor negativo ou inválido
-    if (isNaN(dados.valor) || dados.valor < 0) {
-      showToast('O valor deve ser zero ou positivo.', 'error');
-      return;
-    }
-    
-    try {
-      let response;
-      if (id) {
-        // Atualizar
-        dados.id_contas = parseInt(id);
-        response = await axios.post('/contaspagar/atualizar', dados);
-      } else {
-        // Criar
-        response = await axios.post('/contaspagar/criar', dados);
-        
-        // Se criou conta com sucesso e tem parcelamento selecionado
-        if (response.data.status === 'ok' && document.getElementById('parcelarConta').checked) {
-          const numParcelas = document.getElementById('numeroParcelas').value;
-          const dataPrimeira = document.getElementById('dataPrimeiraParcela').value;
-          const intervaloDias = document.getElementById('intervaloDias').value;
-          
-          if (numParcelas && dataPrimeira && intervaloDias && numParcelas > 0 && numParcelas <= 12) {
-            // Chamar endpoint de gerar parcelas
-            const idContaCriada = response.data.conta?.id_contas;
-            try {
-              await axios.post('/parcelas/gerar', {
-                id_conta: idContaCriada,
-                numero_parcelas: parseInt(numParcelas),
-                data_inicial: dataPrimeira,
-                intervalo_dias: parseInt(intervaloDias)
-              });
-            } catch (parcelaError) {
-              console.error('Erro ao criar parcelas:', parcelaError);
-              showToast('Conta criada, mas houve erro ao criar parcelas', 'error');
-            }
-          }
-        }
-      }
-      
-      if (response.data.status === 'ok') {
-        showToast(response.data.msg, 'success');
-        bootstrap.Modal.getInstance(document.getElementById('modalConta')).hide();
-        carregarContas();
-      }
-    } catch (error) {
-      console.error('Erro ao salvar conta:', error);
-      const errorMsg = error.response?.data?.msg || 'Erro ao salvar conta';
-      showToast(errorMsg, 'error');
-    }
-  });
+     // Salvar conta
+   document.getElementById('formConta').addEventListener('submit', async function(e) {
+     e.preventDefault();
+     
+     const id = document.getElementById('contaId').value;
+     const parcelarConta = document.getElementById('parcelarConta').checked;
+     
+     // Validação: se está parcelando, verificar se os campos de parcelas estão preenchidos
+     if (parcelarConta) {
+       const numParcelas = document.getElementById('numeroParcelas').value;
+       const dataPrimeira = document.getElementById('dataPrimeiraParcela').value;
+       const intervaloDias = document.getElementById('intervaloDias').value;
+       
+       if (!numParcelas || !dataPrimeira || !intervaloDias) {
+         showToast('Preencha todos os campos de parcelamento!', 'error');
+         return;
+       }
+       
+       if (parseInt(numParcelas) < 1 || parseInt(numParcelas) > 12) {
+         showToast('O número de parcelas deve estar entre 1 e 12!', 'error');
+         return;
+       }
+       
+       if (parseInt(intervaloDias) < 1) {
+         showToast('O intervalo entre parcelas deve ser de pelo menos 1 dia!', 'error');
+         return;
+       }
+     }
+     
+     // Se está parcelando, usar a data da primeira parcela como vencimento
+     // Se não está parcelando, usar o campo de vencimento normal
+     const dataVencimento = parcelarConta 
+       ? document.getElementById('dataPrimeiraParcela').value 
+       : document.getElementById('contaVencimento').value;
+     
+     // Validação: garantir que a data de vencimento foi preenchida
+     if (!dataVencimento) {
+       showToast('Preencha a data de vencimento!', 'error');
+       return;
+     }
+     
+     const dados = {
+       descricao: document.getElementById('contaDescricao').value,
+       valor: parseFloat(document.getElementById('contaValor').value),
+       data_vencimento: dataVencimento
+       // Status não é mais enviado - será definido automaticamente como 'Pendente'
+     };
+     
+     // Validação: impedir valor negativo ou inválido
+     if (isNaN(dados.valor) || dados.valor < 0) {
+       showToast('O valor deve ser zero ou positivo.', 'error');
+       return;
+     }
+     
+     try {
+       let response;
+       if (id) {
+         // Atualizar
+         dados.id_contas = parseInt(id);
+         response = await axios.post('/contaspagar/atualizar', dados);
+       } else {
+         // Criar
+         response = await axios.post('/contaspagar/criar', dados);
+         
+         // Se criou conta com sucesso e tem parcelamento selecionado
+         if (response.data.status === 'ok' && parcelarConta) {
+           const numParcelas = document.getElementById('numeroParcelas').value;
+           const dataPrimeira = document.getElementById('dataPrimeiraParcela').value;
+           const intervaloDias = document.getElementById('intervaloDias').value;
+           
+           if (numParcelas && dataPrimeira && intervaloDias && parseInt(numParcelas) > 0 && parseInt(numParcelas) <= 12) {
+             // Chamar endpoint de gerar parcelas
+             const idContaCriada = response.data.conta?.id_contas;
+             try {
+               await axios.post('/parcelas/gerar', {
+                 id_conta: idContaCriada,
+                 numero_parcelas: parseInt(numParcelas),
+                 data_inicial: dataPrimeira,
+                 intervalo_dias: parseInt(intervaloDias)
+               });
+             } catch (parcelaError) {
+               console.error('Erro ao criar parcelas:', parcelaError);
+               showToast('Conta criada, mas houve erro ao criar parcelas', 'error');
+             }
+           }
+         }
+       }
+       
+       if (response.data.status === 'ok') {
+         showToast(response.data.msg, 'success');
+         bootstrap.Modal.getInstance(document.getElementById('modalConta')).hide();
+         carregarContas();
+       }
+     } catch (error) {
+       console.error('Erro ao salvar conta:', error);
+       const errorMsg = error.response?.data?.msg || 'Erro ao salvar conta';
+       showToast(errorMsg, 'error');
+     }
+   });
   
   // Deletar conta
   async function deletarConta(id) {
@@ -619,6 +745,9 @@
     }
   }
   
+    
+    
+             
   // Carregar ao iniciar a página
   window.onload = function() {
     carregarContas();
