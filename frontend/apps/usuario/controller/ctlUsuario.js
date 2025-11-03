@@ -1,5 +1,14 @@
 const axios = require("axios");
 
+// Função auxiliar para obter headers com token JWT
+const getAuthHeaders = (req) => {
+  const token = req.session?.userToken;
+  return {
+    "Content-Type": "application/json",
+    "Authorization": token ? `Bearer ${token}` : ""
+  };
+};
+
 const CadastroPost = async (req, res) => {
   const formData = req.body;
   
@@ -31,7 +40,7 @@ const CadastroPost = async (req, res) => {
   try {
     console.log('[ctlUsuario] Enviando para backend:', payload);
     
-    const resp = await axios.post(process.env.SERVIDOR_BACKEND + "/insertUsuario", payload, {
+    const resp = await axios.post(process.env.SERVIDOR_BACKEND + "/registerUsuario", payload, {
       headers: {
         "Content-Type": "application/json",
       },
@@ -55,7 +64,14 @@ const CadastroPost = async (req, res) => {
     let remoteMSG = "Erro ao cadastrar usuário";
     
     if (error.response) {
-      remoteMSG = error.response.data?.error || error.response.data?.message || remoteMSG;
+      // Captura mensagem de erro específica do backend
+      remoteMSG = error.response.data?.error || error.response.data?.msg || error.response.data?.message || remoteMSG;
+      
+      // Se o erro é relacionado a CPF/CNPJ duplicado, mantém a mensagem original
+      if (error.response.status === 400 && (remoteMSG.includes('CPF') || remoteMSG.includes('CNPJ'))) {
+        return res.status(400).json({ status: "error", msg: remoteMSG }); 
+      }
+      
       return res.status(error.response.status).json({ status: "error", msg: remoteMSG }); 
     }
     if (error.code === "ECONNREFUSED") {

@@ -59,6 +59,15 @@ const deleteUsuario = async (id_user) => {
   return rows[0];
 };
 
+// Verificar se CPF/CNPJ já existe
+const verificarCpfCnpjExistente = async (cpf_cnpj) => {
+  const { rows } = await db.query(
+    "SELECT * FROM usuario WHERE cpf_cnpj = $1 AND deleted = false;", 
+    [cpf_cnpj]
+  );
+  return rows.length > 0 ? rows[0] : null;
+};
+
 // Login do usuário (não deletado)
 const loginUsuario = async (email, senha) => {
   const { rows } = await db.query(
@@ -87,4 +96,5 @@ module.exports = {
   updateUsuario,
   deleteUsuario,
   loginUsuario,
+  verificarCpfCnpjExistente,
 };

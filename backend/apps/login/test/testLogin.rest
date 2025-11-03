@@ -7,19 +7,29 @@ Content-Type: application/json
   "senha": "123456"
 }
 
-### Logout do usuário
+### Logout do usuário (cole aqui o token recebido no login para invalidá-lo)
 POST http://localhost:40000/logout
 Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoxMiwiZW1haWwiOiJ0ZXN0QHRlc3RlLmNvbSIsInRpcG8iOiJQZXNzb2FGaXNpY2EiLCJpYXQiOjE3NjIxOTg5MDUsImV4cCI6MTc2MjI4NTMwNX0.XFPZU0OQfKh2HNmpsTqmDHhFpFFCS6_2ecTfm8HzUaQ
+
+{}
 
 ### Acesso a rota protegida SEM token (deve falhar)
 GET http://localhost:40000/getAllUsuario
 
 ### Acesso a rota protegida COM token inválido (deve falhar)
 GET http://localhost:40000/getAllUsuario
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoxLCJlbWFpbCI6InRlc3RAdGVzdGUuY29tIiwidGlwbyI6IlBlc3NvYUZpc2ljYSIsImlhdCI6MTc2MTc0MTQ1NywiZXhwIjoxNzYxODI3ODU3fQ.jK2CIe3sQb598LZuTrLkw3j3eFtStmRfYVUCljj2AFU
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoxMiwiZW1haWwiOiJ0ZXN0QHRlc3RlLmNvbSIsInRpcG8iOiJQZXNzb2FGaXNpY2EiLCJpYXQiOjE3NjIxOTgzNzgsImV4cCI6MTc2MjI4NDc3OH0.rxLYHVt5AbJln1LG35CcZQf9SGgIbQ3wiMDWgSQN5Z0
 
 ### Acesso a rota protegida COM token válido (cole aqui o token recebido no login)
 GET http://localhost:40000/getAllUsuario
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoxLCJlbWFpbCI6InRlc3RAdGVzdGUuY29tIiwidGlwbyI6IlBlc3NvYUZpc2ljYSIsImlhdCI6MTc2MTc0MTQ1NywiZXhwIjoxNzYxODI3ODU3fQ.jK2CIe3sQb598LZuTrLkw3j3eFtStmRfYVUCljj2AFU
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoxMiwiZW1haWwiOiJ0ZXN0QHRlc3RlLmNvbSIsInRpcG8iOiJQZXNzb2FGaXNpY2EiLCJpYXQiOjE3NjIxOTgzNzgsImV4cCI6MTc2MjI4NDc3OH0.rxLYHVt5AbJln1LG35CcZQf9SGgIbQ3wiMDWgSQN5Z0
+
+### Acesso a rota protegida COM token invalidado APÓS logout (deve falhar)
+GET http://localhost:40000/getAllUsuario
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoxMiwiZW1haWwiOiJ0ZXN0QHRlc3RlLmNvbSIsInRpcG8iOiJQZXNzb2FGaXNpY2EiLCJpYXQiOjE3NjIxOTgzNzgsImV4cCI6MTc2MjI4NDc3OH0.rxLYHVt5AbJln1LG35CcZQf9SGgIbQ3wiMDWgSQN5Z0
+
+### DEBUG: Verificar status da blacklist (quantos tokens estão invalidados)
+GET http://localhost:40000/debug/blacklist
 
 

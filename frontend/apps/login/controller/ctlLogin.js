@@ -33,6 +33,7 @@ const Login = async (req, res) => {
         session.userId = usuario.id_user;
         session.userType = usuario.tipo;
         session.userCpfCnpj = usuario.cpf_cnpj;
+        session.userToken = resp.data.token; // Armazenar o token JWT
         session.tempoInativoMaximoFront = process.env.tempoInativoMaximoFront;
         
         res.cookie("tempoInativoMaximoFront", process.env.tempoInativoMaximoFront, { sameSite: 'strict' });
@@ -70,12 +71,14 @@ const Login = async (req, res) => {
   }
 };
 
+// Função para continuar logado entre abas
 function Logout(req, res) {
   session = req.session;
   session.isLogged = false;
   session.userName = false;
   session.userId = false;
   session.userType = false;
+  session.userToken = false;
   session.tempoInativoMaximoFront = false;
   
   req.session.destroy();

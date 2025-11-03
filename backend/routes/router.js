@@ -23,7 +23,9 @@ routerApp.get("/", (req, res) => {
 // --------------------
 // ROTAS DE USUÁRIO
 // --------------------
-// Aqui o JWT vai ser verificado pelo ctlLogin
+// Rota pública para cadastro (sem autenticação)
+routerApp.post("/registerUsuario", appUsuario.insertUsuario);
+// Rotas protegidas
 routerApp.get("/getAllUsuario", appLogin.AutenticaJWT, appUsuario.getAllUsuario);
 routerApp.post("/getUsuarioByID", appLogin.AutenticaJWT, appUsuario.getUsuarioByID);
 routerApp.post("/insertUsuario", appLogin.AutenticaJWT, appUsuario.insertUsuario);
@@ -35,6 +37,11 @@ routerApp.post("/deleteUsuario", appLogin.AutenticaJWT, appUsuario.deleteUsuario
 // --------------------
 routerApp.post("/login", appLogin.loginUsuario); 
 routerApp.post("/logout", appLogin.logoutUsuario);
+// Rota de debug para verificar status da blacklist (remover em produção)
+routerApp.get("/debug/blacklist", (req, res) => {
+  const status = appLogin.getBlacklistStatus();
+  res.json(status);
+});
 
 // --------------------
 // ROTAS DE CONTAS A PAGAR

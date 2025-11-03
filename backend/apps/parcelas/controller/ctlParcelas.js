@@ -108,7 +108,7 @@ const marcarParcelaComoPaga = async (req, res) => {
 // Gerar parcelas automaticamente
 const gerarParcelas = async (req, res) => {
   try {
-    const { id_conta, numero_parcelas, data_inicial } = req.body;
+    const { id_conta, numero_parcelas, data_inicial, intervalo_dias } = req.body;
 
     // Validações
     if (!id_conta || !numero_parcelas || !data_inicial) {
@@ -117,10 +117,16 @@ const gerarParcelas = async (req, res) => {
 
     const numeroParcelas = parseInt(numero_parcelas);
     const idConta = parseInt(id_conta);
+    const intervaloDias = intervalo_dias ? parseInt(intervalo_dias) : 30; // Default 30 dias se não informado
 
     // Validar número máximo de parcelas (12)
     if (numeroParcelas > 12 || numeroParcelas < 1) {
       return res.status(400).json({ error: "O número de parcelas deve estar entre 1 e 12" });
+    }
+
+    // Validar intervalo de dias
+    if (intervaloDias < 1) {
+      return res.status(400).json({ error: "O intervalo entre parcelas deve ser de pelo menos 1 dia" });
     }
 
     // Verificar se a conta existe e buscar o valor total automaticamente
@@ -161,9 +167,9 @@ const gerarParcelas = async (req, res) => {
     hoje.setHours(0, 0, 0, 0);
 
     for (let i = 1; i <= numeroParcelas; i++) {
-      // Calcular data de vencimento (mensal a partir da data inicial)
+      // Calcular data de vencimento usando intervalo em dias
       const dataVencimento = new Date(dataInicial);
-      dataVencimento.setMonth(dataInicial.getMonth() + (i - 1));
+      dataVencimento.setDate(dataInicial.getDate() + ((i - 1) * intervaloDias));
       dataVencimento.setHours(0, 0, 0, 0);
 
       // Determinar status inicial baseado na data de vencimento

@@ -1,6 +1,10 @@
 const mdlLogin = require("../model/mdlLogin");
 const jwt = require('jsonwebtoken');
 
+// Blacklist de tokens invalidados (em memória)
+// Em produção, considere usar Redis ou banco de dados para persistência
+const tokenBlacklist = new Set();
+
 // Função auxiliar para validar formato de CPF/CNPJ
 const validarFormatoCpfCnpj = (cpfCnpj, tipo) => {
   // Remove espaços em branco
@@ -77,10 +81,22 @@ const loginUsuario = async (req, res) => {
 // Middleware de autenticação JWT
 const AutenticaJWT = async (req, res, next) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1]; // Bearer TOKEN
+    // Extrair token do header Authorization
+    const authHeader = req.headers.authorization;
+    let token = null;
+    
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7); // Remove 'Bearer ' prefix
+    }
     
     if (!token) {
       return res.status(401).json({ error: "Token de acesso não fornecido" });
+    }
+
+    // Verificar se o token está na blacklist (invalidado)
+    if (tokenBlacklist.has(token)) {
+      console.log(`Tentativa de acesso com token invalidado. Total na blacklist: ${tokenBlacklist.size}`);
+      return res.status(401).json({ error: "Token foi invalidado (logout realizado)" });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'sua_chave_secreta_aqui');
@@ -96,17 +112,47 @@ const AutenticaJWT = async (req, res, next) => {
   }
 };
 
-// Logout do usuário (opcional - mais para limpeza de sessão)
+// Logout do usuário - invalida o token
 const logoutUsuario = async (req, res) => {
   try {
-    res.status(200).json({ message: "Logout realizado com sucesso" });
+    // Extrair token do header Authorization
+    const authHeader = req.headers.authorization;
+    let token = null;
+    
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7); // Remove 'Bearer ' prefix
+    }
+    
+    if (token) {
+      // Adicionar token à blacklist para invalidá-lo
+      tokenBlacklist.add(token);
+      console.log(`Token invalidado no logout. Total de tokens na blacklist: ${tokenBlacklist.size}`);
+      console.log(`Token (primeiros 50 chars): ${token.substring(0, 50)}...`);
+    } else {
+      console.log('Logout chamado sem token no header Authorization');
+    }
+    
+    res.status(200).json({ 
+      message: "Logout realizado com sucesso. Token invalidado.",
+      tokenInvalidado: !!token
+    });
   } catch (error) {
+    console.error('Erro no logout:', error);
     res.status(500).json({ error: "Erro ao fazer logout", details: error.message });
   }
+};
+
+// Função para debug - verificar status da blacklist (opcional, pode remover em produção)
+const getBlacklistStatus = () => {
+  return {
+    totalTokensInvalidados: tokenBlacklist.size,
+    tokens: Array.from(tokenBlacklist).map(t => t.substring(0, 20) + '...')
+  };
 };
 
 module.exports = {
   loginUsuario,
   logoutUsuario,
   AutenticaJWT,
+  getBlacklistStatus, // Exportar para debug
 };

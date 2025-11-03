@@ -35,12 +35,13 @@
           <th>Valor</th>
           <th>Vencimento</th>
           <th>Status</th>
+          <th>Parcelas</th>
           <th>Ações</th>
         </tr>
       </thead>
       <tbody id="tbodyContas">
         <tr>
-          <td colspan="5" class="text-center">
+          <td colspan="6" class="text-center">
             <i class="fas fa-spinner fa-spin"></i> Carregando contas...
           </td>
         </tr>
@@ -73,15 +74,60 @@
               <label for="contaValor" class="form-label">
                 <i class="fas fa-dollar-sign"></i> Valor (R$) *
               </label>
-              <input type="number" class="form-control" id="contaValor" step="0.01" min="0" required placeholder="0.00">
+              <input type="number" class="form-control" id="contaValor" step="0.01" min="0" required placeholder="0.00" oninput="calcularParcelas()">
             </div>
-            <div class="col-md-6 mb-3">
+            <div class="col-md-6 mb-3" id="containerVencimento">
               <label for="contaVencimento" class="form-label">
                 <i class="fas fa-calendar"></i> Vencimento *
               </label>
               <input type="date" class="form-control" id="contaVencimento" required>
             </div>
-        </div>
+          </div>
+
+          <!-- Opção de Parcelamento -->
+          <div class="mb-3">
+            <label for="parcelarConta" class="form-label">
+              <i class="fas fa-calendar-check"></i> Parcelar esta conta
+            </label>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="parcelarConta" onchange="toggleParcelas()">
+              <label class="form-check-label" for="parcelarConta">
+                Criar parcelas para esta conta
+              </label>
+            </div>
+          </div>
+
+          <!-- Campos de Parcelamento (ocultos por padrão) -->
+          <div id="camposParcelas" style="display: none;">
+            <div class="row">
+              <div class="col-md-4 mb-3">
+                <label for="numeroParcelas" class="form-label">
+                  <i class="fas fa-list-ol"></i> Número de Parcelas (máx. 12)
+                </label>
+                <input type="number" class="form-control" id="numeroParcelas" min="1" max="12" placeholder="Ex: 3" required oninput="calcularParcelas()">
+              </div>
+              <div class="col-md-4 mb-3">
+                <label for="dataPrimeiraParcela" class="form-label">
+                  <i class="fas fa-calendar-alt"></i> Data da 1ª Parcela *
+                </label>
+                <input type="date" class="form-control" id="dataPrimeiraParcela" required onchange="calcularParcelas()">
+              </div>
+              <div class="col-md-4 mb-3">
+                <label for="intervaloDias" class="form-label">
+                  <i class="fas fa-calendar-day"></i> Intervalo entre parcelas (dias) *
+                </label>
+                <input type="number" class="form-control" id="intervaloDias" min="1" value="30" required placeholder="Ex: 30" oninput="calcularParcelas()">
+              </div>
+            </div>
+            
+            <!-- Preview das Parcelas -->
+            <div id="previewParcelas" style="display: none;" class="alert alert-info mt-3">
+              <h6 class="alert-heading"><i class="fas fa-eye"></i> Preview das Parcelas</h6>
+              <hr>
+              <div id="parcelasPreviewContent" class="small"></div>
+            </div>
+          </div>
+
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
           <button type="submit" class="btn btn-primary" id="btnSalvar">
@@ -92,6 +138,7 @@
     </div>
   </div>
 </div>
+
 
 <script>
   const userId = {{ parametros.IdUsuario }};
@@ -159,6 +206,20 @@
       
       if (response.data.status === 'ok') {
         contasGlobal = response.data.contas;
+        
+        // Carregar parcelas para cada conta
+        for (let i = 0; i < contasGlobal.length; i++) {
+          try {
+            const parcelasResponse = await axios.post('/parcelas/listar', { id_conta: contasGlobal[i].id_contas });
+            if (parcelasResponse.data.status === 'ok') {
+              contasGlobal[i].parcelas = parcelasResponse.data.parcelas || [];
+            }
+          } catch (error) {
+            console.error(`Erro ao carregar parcelas da conta ${contasGlobal[i].id_contas}:`, error);
+            contasGlobal[i].parcelas = [];
+          }
+        }
+        
         renderizarContas(contasGlobal);
         
         // Verificar contas atrasadas (o status já vem calculado do backend)
@@ -192,9 +253,10 @@
     const tbody = document.getElementById('tbodyContas');
     
     if (contas.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" class="text-center">Nenhuma conta cadastrada</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center">Nenhuma conta cadastrada</td></tr>';
       return;
     }
+    
     
     tbody.innerHTML = contas.map(conta => {
       const statusClass = conta.status === 'Pago' ? 'success' : (conta.status === 'Atrasado' ? 'danger' : 'warning');
@@ -205,8 +267,8 @@
       // Definir botões de ação baseado no status
       let botoesAcao = '';
       
+      // Mostrar botão Pagar se a conta não estiver paga
       if (conta.status !== 'Pago') {
-        // Se não está pago, mostrar botão Pagar
         botoesAcao += `
           <button class="btn btn-sm btn-success me-1" onclick="pagarConta(${conta.id_contas})" title="Marcar como Pago">
             <i class="fas fa-check-circle"></i> Pagar
@@ -219,10 +281,37 @@
         <button class="btn btn-sm btn-primary me-1" onclick='editarConta(${JSON.stringify(conta)})' title="Editar">
           <i class="fas fa-edit"></i>
         </button>
-        <button class="btn btn-sm btn-danger" onclick="deletarConta(${conta.id_contas})" title="Deletar">
+        <button class="btn btn-sm btn-danger me-1" onclick="deletarConta(${conta.id_contas})" title="Deletar">
           <i class="fas fa-trash"></i>
         </button>
       `;
+      
+      // Calcular informações de parcelas
+      let infoParcelas = '';
+      if (conta.parcelas && conta.parcelas.length > 0) {
+        const parcelasPagas = conta.parcelas.filter(p => p.status === 'Pago').length;
+        const totalParcelas = conta.parcelas.length;
+        const parcelasPendentes = totalParcelas - parcelasPagas;
+        
+        let badgeClass = 'warning';
+        if (parcelasPagas === totalParcelas) {
+          badgeClass = 'success';
+        } else if (parcelasPendentes > 0 && conta.parcelas.some(p => p.status === 'Atrasado')) {
+          badgeClass = 'danger';
+        }
+        
+        infoParcelas = `
+          <div class="text-center">
+            <span class="badge bg-${badgeClass}">
+              <i class="fas fa-calendar-check"></i> ${parcelasPagas}/${totalParcelas}
+            </span>
+            <br>
+            <small class="text-muted">${parcelasPendentes} pendente(s)</small>
+          </div>
+        `;
+      } else {
+        infoParcelas = '<span class="text-muted text-center d-block">Sem parcelas</span>';
+      }
       
       return `
         <tr class="${rowClass}">
@@ -235,6 +324,7 @@
               ${conta.status === 'Atrasado' ? '<i class="fas fa-exclamation-triangle ms-1"></i>' : ''}
             </span>
           </td>
+          <td>${infoParcelas}</td>
           <td class="text-nowrap">
             ${botoesAcao}
           </td>
@@ -260,6 +350,95 @@
     document.getElementById('modalTitulo').textContent = 'Nova Conta';
     document.getElementById('formConta').reset();
     document.getElementById('contaId').value = '';
+    document.getElementById('parcelarConta').checked = false;
+    document.getElementById('camposParcelas').style.display = 'none';
+    document.getElementById('numeroParcelas').value = '';
+    document.getElementById('dataPrimeiraParcela').value = '';
+    document.getElementById('previewParcelas').style.display = 'none';
+  }
+
+  // Toggle campos de parcelas
+  function toggleParcelas() {
+    const checkParcelar = document.getElementById('parcelarConta').checked;
+    const camposParcelas = document.getElementById('camposParcelas');
+    const numParcelas = document.getElementById('numeroParcelas');
+    const dataPrimeira = document.getElementById('dataPrimeiraParcela');
+    const intervaloDias = document.getElementById('intervaloDias');
+    const previewParcelas = document.getElementById('previewParcelas');
+    const containerVencimento = document.getElementById('containerVencimento');
+    const contaVencimento = document.getElementById('contaVencimento');
+    
+    if (checkParcelar) {
+      // Mostrar campos de parcelas e ocultar vencimento
+      camposParcelas.style.display = 'block';
+      numParcelas.required = true;
+      dataPrimeira.required = true;
+      intervaloDias.required = true;
+      containerVencimento.style.display = 'none';
+      contaVencimento.required = false;
+    } else {
+      // Ocultar campos de parcelas e mostrar vencimento
+      camposParcelas.style.display = 'none';
+      numParcelas.required = false;
+      dataPrimeira.required = false;
+      intervaloDias.required = false;
+      numParcelas.value = '';
+      dataPrimeira.value = '';
+      intervaloDias.value = '30';
+      previewParcelas.style.display = 'none';
+      containerVencimento.style.display = 'block';
+      contaVencimento.required = true;
+    }
+  }
+
+  // Calcular e mostrar preview das parcelas
+  function calcularParcelas() {
+    const valorTotal = parseFloat(document.getElementById('contaValor').value) || 0;
+    const numParcelas = parseInt(document.getElementById('numeroParcelas').value) || 0;
+    const dataPrimeira = document.getElementById('dataPrimeiraParcela').value;
+    const intervaloDias = parseInt(document.getElementById('intervaloDias').value) || 0;
+    const previewDiv = document.getElementById('previewParcelas');
+    const previewContent = document.getElementById('parcelasPreviewContent');
+    
+    // Se não tem todos os dados, ocultar preview
+    if (!valorTotal || !numParcelas || !dataPrimeira || !intervaloDias || numParcelas > 12 || numParcelas < 1 || intervaloDias < 1) {
+      previewDiv.style.display = 'none';
+      return;
+    }
+    
+    // Calcular valor por parcela
+    const valorPorParcela = valorTotal / numParcelas;
+    const valorFormatado = formatarValor(valorPorParcela);
+    
+    // Calcular datas com base no intervalo em dias
+    const dataInicial = new Date(dataPrimeira);
+    const parcelas = [];
+    
+    for (let i = 0; i < numParcelas; i++) {
+      const dataVencimento = new Date(dataInicial);
+      dataVencimento.setDate(dataInicial.getDate() + (i * intervaloDias));
+      parcelas.push({
+        numero: i + 1,
+        data: dataVencimento,
+        valor: valorPorParcela
+      });
+    }
+    
+    // Montar HTML do preview
+    previewContent.innerHTML = `
+      <strong>Valor por parcela: ${formatarValor(valorTotal)} / ${numParcelas} = ${valorFormatado}</strong>
+      <hr style="margin: 0.5rem 0;">
+      <div style="max-height: 200px; overflow-y: auto;">
+        ${parcelas.map(p => `
+          <div class="d-flex justify-content-between align-items-center py-1">
+            <span><i class="fas fa-calendar me-1"></i> Parcela ${p.numero}:</span>
+            <span><strong>${valorFormatado}</strong> - ${formatarData(p.data.toISOString().split('T')[0])}</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    
+    previewDiv.style.display = 'block';
   }
   
   // Editar conta
@@ -270,18 +449,29 @@
     document.getElementById('contaValor').value = conta.valor;
     document.getElementById('contaVencimento').value = formatarDataInput(conta.data_vencimento);
     
+    // Ocultar campos de parcelas ao editar
+    document.getElementById('parcelarConta').checked = false;
+    document.getElementById('camposParcelas').style.display = 'none';
+    
     new bootstrap.Modal(document.getElementById('modalConta')).show();
   }
-  
+
   // Salvar conta
   document.getElementById('formConta').addEventListener('submit', async function(e) {
     e.preventDefault();
     
     const id = document.getElementById('contaId').value;
+    const parcelarConta = document.getElementById('parcelarConta').checked;
+    
+    // Se está parcelando, usar a data da primeira parcela como vencimento
+    const dataVencimento = parcelarConta 
+      ? document.getElementById('dataPrimeiraParcela').value 
+      : document.getElementById('contaVencimento').value;
+    
     const dados = {
       descricao: document.getElementById('contaDescricao').value,
       valor: parseFloat(document.getElementById('contaValor').value),
-      data_vencimento: document.getElementById('contaVencimento').value
+      data_vencimento: dataVencimento
       // Status não é mais enviado - será definido automaticamente como 'Pendente'
     };
     
@@ -300,6 +490,29 @@
       } else {
         // Criar
         response = await axios.post('/contaspagar/criar', dados);
+        
+        // Se criou conta com sucesso e tem parcelamento selecionado
+        if (response.data.status === 'ok' && document.getElementById('parcelarConta').checked) {
+          const numParcelas = document.getElementById('numeroParcelas').value;
+          const dataPrimeira = document.getElementById('dataPrimeiraParcela').value;
+          const intervaloDias = document.getElementById('intervaloDias').value;
+          
+          if (numParcelas && dataPrimeira && intervaloDias && numParcelas > 0 && numParcelas <= 12) {
+            // Chamar endpoint de gerar parcelas
+            const idContaCriada = response.data.conta?.id_contas;
+            try {
+              await axios.post('/parcelas/gerar', {
+                id_conta: idContaCriada,
+                numero_parcelas: parseInt(numParcelas),
+                data_inicial: dataPrimeira,
+                intervalo_dias: parseInt(intervaloDias)
+              });
+            } catch (parcelaError) {
+              console.error('Erro ao criar parcelas:', parcelaError);
+              showToast('Conta criada, mas houve erro ao criar parcelas', 'error');
+            }
+          }
+        }
       }
       
       if (response.data.status === 'ok') {

@@ -37,9 +37,25 @@ const insertUsuario = async (req, res) => {
       }
     }
     
+    // Verificar se CPF/CNPJ já está em uso
+    const cpfCnpjExistente = await mdlUsuario.verificarCpfCnpjExistente(usuario.cpf_cnpj);
+    if (cpfCnpjExistente) {
+      const tipoDocumento = usuario.tipo === 'PessoaFisica' ? 'CPF' : 'CNPJ';
+      return res.status(400).json({ 
+        error: `Este ${tipoDocumento} já está cadastrado e em uso por outro usuário. Por favor, verifique o documento informado.` 
+      });
+    }
+    
     const novoUsuario = await mdlUsuario.createUsuario(usuario);
     res.status(201).json(novoUsuario);
   } catch (error) {
+    // Tratar erro de constraint UNIQUE do banco de dados
+    if (error.code === '23505' && error.constraint === 'usuario_cpf_cnpj_key') {
+      const tipoDocumento = req.body.tipo === 'PessoaFisica' ? 'CPF' : 'CNPJ';
+      return res.status(400).json({ 
+        error: `Este ${tipoDocumento} já está cadastrado e em uso por outro usuário. Por favor, verifique o documento informado.` 
+      });
+    }
     res.status(500).json({ error: "Erro ao criar usuário", details: error.message });
   }
 };
@@ -49,10 +65,40 @@ const updateUsuario = async (req, res) => {
   try {
     const { id_user } = req.body; // pega do body, igual getUsuarioByID
     const usuario = req.body;
+    
+    // Se está atualizando o CPF/CNPJ, verificar se já está em uso por outro usuário
+    if (usuario.cpf_cnpj) {
+      // Validar se o formato do CPF/CNPJ corresponde ao tipo selecionado
+      if (usuario.tipo) {
+        if (!validarFormatoCpfCnpj(usuario.cpf_cnpj, usuario.tipo)) {
+          const tipoEsperado = usuario.tipo === 'PessoaFisica' ? 'CPF (11 dígitos)' : 'CNPJ (14 dígitos)';
+          return res.status(400).json({ 
+            error: `O documento informado não corresponde ao tipo ${usuario.tipo === 'PessoaFisica' ? 'Pessoa Física' : 'Empresa'}. Esperado: ${tipoEsperado}` 
+          });
+        }
+      }
+      
+      const cpfCnpjExistente = await mdlUsuario.verificarCpfCnpjExistente(usuario.cpf_cnpj);
+      // Se encontrou um usuário com o mesmo CPF/CNPJ e não é o próprio usuário sendo atualizado
+      if (cpfCnpjExistente && cpfCnpjExistente.id_user !== id_user) {
+        const tipoDocumento = usuario.tipo === 'PessoaFisica' ? 'CPF' : 'CNPJ';
+        return res.status(400).json({ 
+          error: `Este ${tipoDocumento} já está cadastrado e em uso por outro usuário. Por favor, verifique o documento informado.` 
+        });
+      }
+    }
+    
     const usuarioAtualizado = await mdlUsuario.updateUsuario(id_user, usuario);
     if (!usuarioAtualizado) return res.status(404).json({ error: "Usuário não encontrado" });
     res.status(200).json(usuarioAtualizado);
   } catch (error) {
+    // Tratar erro de constraint UNIQUE do banco de dados
+    if (error.code === '23505' && error.constraint === 'usuario_cpf_cnpj_key') {
+      const tipoDocumento = req.body.tipo === 'PessoaFisica' ? 'CPF' : 'CNPJ';
+      return res.status(400).json({ 
+        error: `Este ${tipoDocumento} já está cadastrado e em uso por outro usuário. Por favor, verifique o documento informado.` 
+      });
+    }
     res.status(500).json({ error: "Erro ao atualizar usuário", details: error.message });
   }
 };

@@ -10,24 +10,26 @@ Content-Type: application/json
 ### Listar todos os usuários (com autenticação)
 GET http://localhost:40000/getAllUsuario
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoyLCJlbWFpbCI6InRlc3RAdGVzdGUuY29tIiwidGlwbyI6IlBlc3NvYUZpc2ljYSIsImlhdCI6MTc2MTY4NjE3NiwiZXhwIjoxNzYxNzcyNTc2fQ.wT0P7_n6FKuj1ffWU1UPnhHi75XQ-2Qi7itR6EXv4rI
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoxMiwiZW1haWwiOiJ0ZXN0QHRlc3RlLmNvbSIsInRpcG8iOiJQZXNzb2FGaXNpY2EiLCJpYXQiOjE3NjIxOTg5MDUsImV4cCI6MTc2MjI4NTMwNX0.XFPZU0OQfKh2HNmpsTqmDHhFpFFCS6_2ecTfm8HzUaQ
 
 ### Buscar um usuário por ID (com autenticação)
 POST http://localhost:40000/getUsuarioByID
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoyLCJlbWFpbCI6InRlc3RAdGVzdGUuY29tIiwidGlwbyI6IlBlc3NvYUZpc2ljYSIsImlhdCI6MTc2MTY4NjE3NiwiZXhwIjoxNzYxNzcyNTc2fQ.wT0P7_n6FKuj1ffWU1UPnhHi75XQ-2Qi7itR6EXv4rI
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoxMiwiZW1haWwiOiJ0ZXN0QHRlc3RlLmNvbSIsInRpcG8iOiJQZXNzb2FGaXNpY2EiLCJpYXQiOjE3NjIxOTgzNzgsImV4cCI6MTc2MjI4NDc3OH0.rxLYHVt5AbJln1LG35CcZQf9SGgIbQ3wiMDWgSQN5Z0
+
 
 {
-  "id_user": 3
+  "id_user": 1
 }
 
 ### Criar um novo usuário (com autenticação)
 POST http://localhost:40000/insertUsuario
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoyLCJlbWFpbCI6InRlc3RAdGVzdGUuY29tIiwidGlwbyI6IlBlc3NvYUZpc2ljYSIsImlhdCI6MTc2MTY4NjE3NiwiZXhwIjoxNzYxNzcyNTc2fQ.wT0P7_n6FKuj1ffWU1UPnhHi75XQ-2Qi7itR6EXv4rI
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoxMiwiZW1haWwiOiJ0ZXN0QHRlc3RlLmNvbSIsInRpcG8iOiJQZXNzb2FGaXNpY2EiLCJpYXQiOjE3NjIxOTgzNzgsImV4cCI6MTc2MjI4NDc3OH0.rxLYHVt5AbJln1LG35CcZQf9SGgIbQ3wiMDWgSQN5Z0
+
 
 {
-  "nome": "Felipe",
+  "nome": "Lucas",
   "email": "Felipe@example.com",
   "senha": "123456",
   "tipo": "PessoaFisica",
@@ -37,26 +39,31 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoyLCJlb
 ### Atualizar usuário existente (com autenticação)
 POST http://localhost:40000/updateUsuario
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoyLCJlbWFpbCI6InRlc3RAdGVzdGUuY29tIiwidGlwbyI6IlBlc3NvYUZpc2ljYSIsImlhdCI6MTc2MTY4NjE3NiwiZXhwIjoxNzYxNzcyNTc2fQ.wT0P7_n6FKuj1ffWU1UPnhHi75XQ-2Qi7itR6EXv4rI
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoxMiwiZW1haWwiOiJ0ZXN0QHRlc3RlLmNvbSIsInRpcG8iOiJQZXNzb2FGaXNpY2EiLCJpYXQiOjE3NjIxOTgzNzgsImV4cCI6MTc2MjI4NDc3OH0.rxLYHVt5AbJln1LG35CcZQf9SGgIbQ3wiMDWgSQN5Z0
+
 
 {
-  "id_user": 3,
-  "nome": "Felipe Atualizado",
-  "email": "marcelo_novo@example.com",
+  "id_user": 8,
+  "nome": "Felipe",
+  "email": "Felipe@example.com",
   "senha": "654321",
-  "tipo": "Empresa",
-  "cpf_cnpj": "12.345.678/0001-99"
+  "tipo": "PessoaFisica",
+  "cpf_cnpj": "123.456.789-01"
 }
 
 ### Deletar usuário (soft delete - com autenticação)
 POST http://localhost:40000/deleteUsuario
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoyLCJlbWFpbCI6InRlc3RAdGVzdGUuY29tIiwidGlwbyI6IlBlc3NvYUZpc2ljYSIsImlhdCI6MTc2MTY4NjE3NiwiZXhwIjoxNzYxNzcyNTc2fQ.wT0P7_n6FKuj1ffWU1UPnhHi75XQ-2Qi7itR6EXv4rI
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoxMiwiZW1haWwiOiJ0ZXN0QHRlc3RlLmNvbSIsInRpcG8iOiJQZXNzb2FGaXNpY2EiLCJpYXQiOjE3NjIxOTgzNzgsImV4cCI6MTc2MjI4NDc3OH0.rxLYHVt5AbJln1LG35CcZQf9SGgIbQ3wiMDWgSQN5Z0
+
 
 {
-  "id_user": 3
+  "id_user": 1
 }
 
-### Logout do usuário
+### Logout do usuário (cole aqui o token recebido no login para invalidá-lo)
 POST http://localhost:40000/logout
 Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoxMiwiZW1haWwiOiJ0ZXN0QHRlc3RlLmNvbSIsInRpcG8iOiJQZXNzb2FGaXNpY2EiLCJpYXQiOjE3NjIxOTgzNzgsImV4cCI6MTc2MjI4NDc3OH0.rxLYHVt5AbJln1LG35CcZQf9SGgIbQ3wiMDWgSQN5Z0
+
+{}

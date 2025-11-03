@@ -14,6 +14,7 @@ const port = process.env.PORT || 3000;
 // Importa as rotas
 var rtIndex = require('./routes/rtIndex');
 var rtContasPagar = require('./routes/rtContasPagar');
+var rtParcelas = require('./routes/rtParcelas');
 
 jwtchave = process.env.JWTCHAVE;
 
@@ -46,6 +47,7 @@ app.use(
 // Define as rotas
 app.use('/', rtIndex);
 app.use('/contaspagar', rtContasPagar);
+app.use('/parcelas', rtParcelas);
 
 // Inicia o servidor
 app.listen(port, () => {

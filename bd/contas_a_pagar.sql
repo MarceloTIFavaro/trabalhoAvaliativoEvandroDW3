@@ -7,9 +7,13 @@ CREATE TABLE usuario(
     email VARCHAR(100) UNIQUE NOT NULL,
     senha VARCHAR(255) NOT NULL,
     tipo tipo_usuario NOT NULL,
-    cpf_cnpj VARCHAR(20),
+    cpf_cnpj VARCHAR(20) UNIQUE NOT NULL,
     deleted BOOLEAN DEFAULT FALSE,
-    data_criacao TIMESTAMP DEFAULT NOW()
+    data_criacao TIMESTAMP DEFAULT NOW(),
+    CONSTRAINT cpf_cnpj_valido CHECK (
+        (tipo = 'PessoaFisica' AND LENGTH(REGEXP_REPLACE(cpf_cnpj, '[^0-9]', '', 'g')) = 11) OR
+        (tipo = 'Empresa' AND LENGTH(REGEXP_REPLACE(cpf_cnpj, '[^0-9]', '', 'g')) = 14)
+    )
 );
 
 CREATE TABLE contas_a_pagar (

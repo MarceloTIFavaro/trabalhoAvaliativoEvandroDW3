@@ -1,5 +1,14 @@
 const axios = require("axios");
 
+// Função auxiliar para obter headers com token JWT
+const getAuthHeaders = (req) => {
+  const token = req.session?.userToken;
+  return {
+    "Content-Type": "application/json",
+    "Authorization": token ? `Bearer ${token}` : ""
+  };
+};
+
 const GerenciarContas = async (req, res) => {
   userName = req.session.userName;
   userType = req.session.userType;
@@ -22,9 +31,7 @@ const ListarContas = async (req, res) => {
     const resp = await axios.post(process.env.SERVIDOR_BACKEND + "/getContasPagarByUsuario", {
       id_usuario: userId
     }, {
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: getAuthHeaders(req),
       timeout: 5000,
     });
 
@@ -62,9 +69,7 @@ const CriarConta = async (req, res) => {
     };
 
     const resp = await axios.post(process.env.SERVIDOR_BACKEND + "/insertContasPagar", payload, {
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: getAuthHeaders(req),
       timeout: 5000,
     });
 
@@ -102,9 +107,7 @@ const AtualizarConta = async (req, res) => {
     };
 
     const resp = await axios.post(process.env.SERVIDOR_BACKEND + "/updateContasPagar", payload, {
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: getAuthHeaders(req),
       timeout: 5000,
     });
 
@@ -138,9 +141,7 @@ const DeletarConta = async (req, res) => {
     };
 
     const resp = await axios.post(process.env.SERVIDOR_BACKEND + "/deleteContasPagar", payload, {
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: getAuthHeaders(req),
       timeout: 5000,
     });
 
@@ -173,9 +174,7 @@ const PagarConta = async (req, res) => {
     };
 
     const resp = await axios.post(process.env.SERVIDOR_BACKEND + "/marcarContaComoPaga", payload, {
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: getAuthHeaders(req),
       timeout: 5000,
     });
 
