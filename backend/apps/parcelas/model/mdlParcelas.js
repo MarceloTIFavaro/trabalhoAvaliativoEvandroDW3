@@ -62,6 +62,15 @@ const deleteParcelas = async (id_parcela) => {
         : { message: "Parcela não encontrada ou já deletada." };
 };
 
+// Deletar (lógico) todas as parcelas de uma conta
+const deleteParcelasByConta = async (id_conta) => {
+    const result = await db.query(
+        "UPDATE parcelas SET deleted = true WHERE id_conta = $1 AND deleted = false RETURNING id_parcela;",
+        [id_conta]
+    );
+    return { quantidade: result.rowCount };
+};
+
 // Marcar parcela como paga
 const marcarParcelaComoPaga = async (id_parcela) => {
     const { rows } = await db.query(
@@ -99,6 +108,7 @@ module.exports = {
     insertParcelas,
     updateParcelas,
     deleteParcelas,
+    deleteParcelasByConta,
     marcarParcelaComoPaga,
     verificarStatusAutomatico,
 };

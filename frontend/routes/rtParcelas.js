@@ -22,5 +22,8 @@ router.post('/pagar', authenticationMiddleware, parcelasApp.PagarParcela);
 /* POST - Gerar parcelas para uma conta */
 router.post('/gerar', authenticationMiddleware, parcelasApp.GerarParcelas);
 
+/* POST - Regerar (substituir) parcelas para uma conta */
+router.post('/regerar', authenticationMiddleware, parcelasApp.RegerarParcelas);
+
 module.exports = router;
 

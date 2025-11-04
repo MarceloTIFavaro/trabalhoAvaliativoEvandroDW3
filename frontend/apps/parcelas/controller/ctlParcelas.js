@@ -115,5 +115,38 @@ module.exports = {
   ListarParcelas,
   PagarParcela,
   GerarParcelas,
+  RegerarParcelas: async (req, res) => {
+    try {
+      const formData = req.body;
+      const payload = {
+        id_conta: formData.id_conta,
+        numero_parcelas: formData.numero_parcelas,
+        data_inicial: formData.data_inicial,
+        intervalo_dias: formData.intervalo_dias || 30
+      };
+
+      const resp = await axios.post(process.env.SERVIDOR_BACKEND + "/regerarParcelas", payload, {
+        headers: getAuthHeaders(req),
+        timeout: 5000,
+      });
+
+      return res.json({
+        status: "ok",
+        msg: resp.data.message || "Parcelas regeradas com sucesso!",
+        dados: resp.data
+      });
+    } catch (error) {
+      let remoteMSG = "Erro ao regerar parcelas";
+      if (error.response) {
+        remoteMSG = error.response.data?.error || remoteMSG;
+        return res.status(error.response.status).json({ status: "error", msg: remoteMSG });
+      }
+      if (error.code === "ECONNREFUSED") {
+        remoteMSG = "Servidor indisponível";
+        return res.status(503).json({ status: "error", msg: remoteMSG });
+      }
+      return res.status(400).json({ status: "error", msg: remoteMSG });
+    }
+  },
 };
 

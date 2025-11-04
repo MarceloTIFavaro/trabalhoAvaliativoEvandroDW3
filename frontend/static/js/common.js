@@ -46,14 +46,26 @@ function verificarAtrasada(dataVencimento) {
 
 // Função para formatar data para exibição
 function formatarData(dataStr) {
+    if (!dataStr) return '';
+    // Se vier YYYY-MM-DD, formatar manualmente para dd/mm/aaaa
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dataStr)) {
+        const [ano, mes, dia] = dataStr.split('-');
+        return `${dia}/${mes}/${ano}`;
+    }
     const data = new Date(dataStr);
-    return data.toLocaleDateString('pt-BR');
+    return isNaN(data.getTime()) ? '' : data.toLocaleDateString('pt-BR');
 }
 
-// Função para formatar data para input date
+// Função para formatar data para input date (YYYY-MM-DD local)
 function formatarDataInput(dataStr) {
-    const data = new Date(dataStr);
-    return data.toISOString().split('T')[0];
+    if (!dataStr) return '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dataStr)) return dataStr;
+    const d = new Date(dataStr);
+    if (isNaN(d.getTime())) return '';
+    const ano = d.getFullYear();
+    const mes = String(d.getMonth() + 1).padStart(2, '0');
+    const dia = String(d.getDate()).padStart(2, '0');
+    return `${ano}-${mes}-${dia}`;
 }
 
 // Função para formatar valor monetário

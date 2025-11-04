@@ -108,7 +108,7 @@
               </div>
               <div class="col-md-4 mb-3">
                 <label for="dataPrimeiraParcela" class="form-label">
-                  <i class="fas fa-calendar-alt"></i> Data da 1ª Parcela *
+                  <i class="fas fa-calendar-alt"></i> Data da 1ª Parcela
                 </label>
                 <input type="date" class="form-control" id="dataPrimeiraParcela" onchange="calcularParcelas()">
               </div>
@@ -123,7 +123,6 @@
             <!-- Preview das Parcelas -->
             <div id="previewParcelas" style="display: none;" class="alert alert-info mt-3">
               <h6 class="alert-heading"><i class="fas fa-eye"></i> Preview das Parcelas</h6>
-              <hr>
               <div id="parcelasPreviewContent" class="small"></div>
             </div>
           </div>
@@ -143,6 +142,7 @@
 <script>
   const userId = {{ parametros.IdUsuario }};
   let contasGlobal = [];
+  let contaEmEdicao = null;
   
   // Função para exibir toast
   function showToast(message, type = 'success') {
@@ -182,16 +182,31 @@
     }
   });
   
-  // Função para formatar data
+  // Função para formatar data (evitar shift de timezone)
   function formatarData(dataStr) {
+    if (!dataStr) return '';
+    // Se já estiver no formato YYYY-MM-DD, formatar manualmente
+    const m = /^\d{4}-\d{2}-\d{2}$/.exec(dataStr);
+    if (m) {
+      const [ano, mes, dia] = dataStr.split('-');
+      return `${dia}/${mes}/${ano}`;
+    }
+    // Fallback seguro para outros formatos
     const data = new Date(dataStr);
-    return data.toLocaleDateString('pt-BR');
+    return isNaN(data.getTime()) ? '' : data.toLocaleDateString('pt-BR');
   }
   
-  // Função para formatar data para input
+  // Função para formatar data para input (YYYY-MM-DD em fuso local)
   function formatarDataInput(dataStr) {
-    const data = new Date(dataStr);
-    return data.toISOString().split('T')[0];
+    if (!dataStr) return '';
+    // Se já estiver no formato YYYY-MM-DD, retornar como está
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dataStr)) return dataStr;
+    const d = new Date(dataStr);
+    if (isNaN(d.getTime())) return '';
+    const ano = d.getFullYear();
+    const mes = String(d.getMonth() + 1).padStart(2, '0');
+    const dia = String(d.getDate()).padStart(2, '0');
+    return `${ano}-${mes}-${dia}`;
   }
   
   // Função para formatar valor
@@ -506,14 +521,21 @@
     // Calcular valor por parcela
     const valorPorParcela = valorTotal / numParcelas;
     const valorFormatado = formatarValor(valorPorParcela);
+    const formatarDataLocalYmd = (d) => {
+      const ano = d.getFullYear();
+      const mes = String(d.getMonth() + 1).padStart(2, '0');
+      const dia = String(d.getDate()).padStart(2, '0');
+      return `${ano}-${mes}-${dia}`;
+    };
     
     // Calcular datas com base no intervalo em dias
-    const dataInicial = new Date(dataPrimeira);
+    // Parse localmente YYYY-MM-DD para evitar shift
+    const [y, m, d] = dataPrimeira.split('-').map(x => parseInt(x));
+    const dataInicial = new Date(y, m - 1, d, 0, 0, 0, 0);
     const parcelas = [];
     
     for (let i = 0; i < numParcelas; i++) {
-      const dataVencimento = new Date(dataInicial);
-      dataVencimento.setDate(dataInicial.getDate() + (i * intervaloDias));
+      const dataVencimento = new Date(dataInicial.getFullYear(), dataInicial.getMonth(), dataInicial.getDate() + (i * intervaloDias), 0, 0, 0, 0);
       parcelas.push({
         numero: i + 1,
         data: dataVencimento,
@@ -523,13 +545,12 @@
     
     // Montar HTML do preview
     previewContent.innerHTML = `
-      <strong>Valor por parcela: ${formatarValor(valorTotal)} / ${numParcelas} = ${valorFormatado}</strong>
       <hr style="margin: 0.5rem 0;">
       <div style="max-height: 200px; overflow-y: auto;">
         ${parcelas.map(p => `
           <div class="d-flex justify-content-between align-items-center py-1">
             <span><i class="fas fa-calendar me-1"></i> Parcela ${p.numero}:</span>
-            <span><strong>${valorFormatado}</strong> - ${formatarData(p.data.toISOString().split('T')[0])}</span>
+            <span><strong>${valorFormatado}</strong> - ${formatarData(formatarDataLocalYmd(p.data))}</span>
           </div>
         `).join('')}
       </div>
@@ -546,9 +567,41 @@
     document.getElementById('contaValor').value = conta.valor;
     document.getElementById('contaVencimento').value = formatarDataInput(conta.data_vencimento);
     
-    // Ocultar campos de parcelas ao editar
-    document.getElementById('parcelarConta').checked = false;
-    document.getElementById('camposParcelas').style.display = 'none';
+    // Guardar conta atual em edição
+    contaEmEdicao = conta;
+
+    const temParcelas = Array.isArray(conta.parcelas) && conta.parcelas.length > 0;
+    const chk = document.getElementById('parcelarConta');
+    const campos = document.getElementById('camposParcelas');
+    const numParcelasEl = document.getElementById('numeroParcelas');
+    const dataPrimeiraEl = document.getElementById('dataPrimeiraParcela');
+    const intervaloEl = document.getElementById('intervaloDias');
+
+    if (temParcelas) {
+      // Exibir e preencher campos de parcelas automaticamente
+      chk.checked = true;
+      campos.style.display = 'block';
+      numParcelasEl.required = true;
+      dataPrimeiraEl.required = true;
+      intervaloEl.required = true;
+
+      numParcelasEl.value = conta.parcelas.length;
+      // Definir data da 1ª parcela como a menor data_vencimento
+      const primeira = [...conta.parcelas].sort((a,b)=> new Date(a.data_vencimento) - new Date(b.data_vencimento))[0];
+      if (primeira) {
+        dataPrimeiraEl.value = formatarDataInput(primeira.data_vencimento);
+      }
+      // manter intervalo padrão se não souber o anterior
+      if (!intervaloEl.value) intervaloEl.value = '30';
+      calcularParcelas();
+    } else {
+      // Ocultar campos se não há parcelas
+      chk.checked = false;
+      campos.style.display = 'none';
+      numParcelasEl.required = false;
+      dataPrimeiraEl.required = false;
+      intervaloEl.required = false;
+    }
     
     new bootstrap.Modal(document.getElementById('modalConta')).show();
   }
@@ -609,11 +662,37 @@
      
      try {
        let response;
-       if (id) {
-         // Atualizar
-         dados.id_contas = parseInt(id);
-         response = await axios.post('/contaspagar/atualizar', dados);
-       } else {
+      if (id) {
+        // Atualizar
+        dados.id_contas = parseInt(id);
+        response = await axios.post('/contaspagar/atualizar', dados);
+        
+        // Decidir se deve regerar parcelas ao editar
+        const numParcelas = document.getElementById('numeroParcelas').value;
+        const dataPrimeira = document.getElementById('dataPrimeiraParcela').value;
+        const intervaloDias = document.getElementById('intervaloDias').value;
+        const deveRegerar = parcelarConta || (contaEmEdicao && Array.isArray(contaEmEdicao.parcelas) && contaEmEdicao.parcelas.length > 0 && (numParcelas || dataPrimeira || intervaloDias));
+
+        if (response.data.status === 'ok' && deveRegerar) {
+          const numParcelas = document.getElementById('numeroParcelas').value;
+          const dataPrimeira = document.getElementById('dataPrimeiraParcela').value;
+          const intervaloDias = document.getElementById('intervaloDias').value;
+
+          if (numParcelas && dataPrimeira && intervaloDias && parseInt(numParcelas) > 0 && parseInt(numParcelas) <= 12) {
+            try {
+              await axios.post('/parcelas/regerar', {
+                id_conta: parseInt(id),
+                numero_parcelas: parseInt(numParcelas),
+                data_inicial: dataPrimeira,
+                intervalo_dias: parseInt(intervaloDias)
+              });
+            } catch (parcelaError) {
+              console.error('Erro ao regerar parcelas:', parcelaError);
+              showToast('Conta atualizada, mas houve erro ao regerar parcelas', 'error');
+            }
+          }
+        }
+      } else {
          // Criar
          response = await axios.post('/contaspagar/criar', dados);
          
@@ -641,7 +720,7 @@
          }
        }
        
-       if (response.data.status === 'ok') {
+      if (response.data.status === 'ok') {
          showToast(response.data.msg, 'success');
          bootstrap.Modal.getInstance(document.getElementById('modalConta')).hide();
          carregarContas();
