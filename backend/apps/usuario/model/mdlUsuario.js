@@ -35,7 +35,6 @@ const createUsuario = async (usuario) => {
 const updateUsuario = async (id_user, usuario) => {
   const { nome, email, senha, tipo, cpf_cnpj } = usuario;
   
-  // Hash da senha se fornecida
   let senhaHash = senha;
   if (senha) {
     const saltRounds = 10;

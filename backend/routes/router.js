@@ -7,22 +7,19 @@ const appLogin = require("../apps/login/controller/ctlLogin");
 const appContasPagar = require("../apps/contas_pagar/controller/ctlContasPagar");
 const appParcelas = require("../apps/parcelas/controller/ctlParcelas");
 
-// Middleware global (log de requisições)
+
 routerApp.use((req, res, next) => {
   console.log(`Requisição recebida: ${req.method} ${req.url}`);
   next();
 });
 
-// --------------------
-// ROTA PRINCIPAL
-// --------------------
+
 routerApp.get("/", (req, res) => {
   res.send("API rodando com sucesso!");
 });
 
-// --------------------
+
 // ROTAS DE USUÁRIO
-// --------------------
 // Rota pública para cadastro (sem autenticação)
 routerApp.post("/registerUsuario", appUsuario.insertUsuario);
 // Rotas protegidas
@@ -32,20 +29,18 @@ routerApp.post("/insertUsuario", appLogin.AutenticaJWT, appUsuario.insertUsuario
 routerApp.post("/updateUsuario", appLogin.AutenticaJWT, appUsuario.updateUsuario);
 routerApp.post("/deleteUsuario", appLogin.AutenticaJWT, appUsuario.deleteUsuario);
 
-// --------------------
+
 // ROTAS DE AUTENTICAÇÃO
-// --------------------
 routerApp.post("/login", appLogin.loginUsuario); 
 routerApp.post("/logout", appLogin.logoutUsuario);
-// Rota de debug para verificar status da blacklist (remover em produção)
+
 routerApp.get("/debug/blacklist", (req, res) => {
   const status = appLogin.getBlacklistStatus();
   res.json(status);
 });
 
-// --------------------
+
 // ROTAS DE CONTAS A PAGAR
-// --------------------
 routerApp.get("/getAllContasPagar", appLogin.AutenticaJWT, appContasPagar.getAllContasPagar);
 routerApp.post("/getContasPagarByID", appLogin.AutenticaJWT, appContasPagar.getContasPagarByID);
 routerApp.post("/getContasPagarByUsuario", appLogin.AutenticaJWT, appContasPagar.getContasPagarByUsuario);
@@ -54,9 +49,8 @@ routerApp.post("/updateContasPagar", appLogin.AutenticaJWT, appContasPagar.updat
 routerApp.post("/deleteContasPagar", appLogin.AutenticaJWT, appContasPagar.deleteContasPagar);
 routerApp.post("/marcarContaComoPaga", appLogin.AutenticaJWT, appContasPagar.marcarContaComoPaga);
 
-// --------------------
+
 // ROTAS DE PARCELAS
-// --------------------
 routerApp.get("/getAllParcelas", appLogin.AutenticaJWT, appParcelas.getAllParcelas);
 routerApp.post("/getParcelasById", appLogin.AutenticaJWT, appParcelas.getParcelasById);
 routerApp.post("/getParcelasByContaPagar", appLogin.AutenticaJWT, appParcelas.getParcelasByConta);

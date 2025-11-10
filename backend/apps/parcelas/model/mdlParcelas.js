@@ -82,10 +82,9 @@ const marcarParcelaComoPaga = async (id_parcela) => {
 
 // Verificar e atualizar status automático
 const verificarStatusAutomatico = (parcela) => {
-    // IMPORTANTE: Parcelas pagas NUNCA devem ter o status recalculado
-    // Verificar se o status é exatamente 'Pago' (case-sensitive)
+
     if (parcela.status === 'Pago' || parcela.status === 'PAGO' || parcela.status === 'pago') {
-        return parcela; // Retornar sem modificar
+        return parcela; 
     }
 
     const hoje = new Date();
@@ -94,7 +93,6 @@ const verificarStatusAutomatico = (parcela) => {
     const dataVencimento = new Date(parcela.data_vencimento);
     dataVencimento.setHours(0, 0, 0, 0);
 
-    // Criar uma cópia do objeto para não modificar o original diretamente
     const parcelaAtualizada = { ...parcela };
     parcelaAtualizada.status = dataVencimento < hoje ? 'Atrasado' : 'Pendente';
     
