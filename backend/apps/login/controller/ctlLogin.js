@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 
 const tokenBlacklist = new Set();
 
+
 // Função para validar se o formato do CPF ou CNPJ corresponde ao tipo de usuário (Pessoa Física ou Empresa)
 const validarFormatoCpfCnpj = (cpfCnpj, tipo) => {
   const cpfCnpjLimpo = cpfCnpj.replace(/\s/g, '');
