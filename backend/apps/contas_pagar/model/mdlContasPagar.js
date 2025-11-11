@@ -34,7 +34,6 @@ const insertContasPagar = async (dados) => {
     return rows[0];
 }
 
-
 // Atualizar Conta
 const updateConstasPagar = async (id_contas, dados) => {
     const { descricao, valor, data_vencimento, status } = dados;
