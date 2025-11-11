@@ -23,6 +23,6 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(port, () => {
-  console.log(`🚀 Servidor rodando na porta ${port}`);
-  console.log(`📊 Acesse: http://localhost:${port}`);
+  console.log(`Servidor rodando na porta ${port}`);
+  console.log(`Acesse: http://localhost:${port}`);
 })

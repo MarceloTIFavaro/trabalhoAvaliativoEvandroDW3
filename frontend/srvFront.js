@@ -51,8 +51,8 @@ app.use('/parcelas', rtParcelas);
 
 // Inicia o servidor
 app.listen(port, () => {
-  console.log(`🚀 Frontend rodando em http://localhost:${port}`);
-  console.log(`📊 Backend configurado para: ${process.env.SERVIDOR_BACKEND}`);
+  console.log(`Frontend rodando em http://localhost:${port}`);
+  console.log(`Backend configurado para: ${process.env.SERVIDOR_BACKEND}`);
 });
 
 module.exports = app;

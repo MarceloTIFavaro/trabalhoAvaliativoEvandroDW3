@@ -35,7 +35,7 @@ Authorization: Bearer {{token}}
 ### Criar uma nova parcela (com autenticação)
 POST http://localhost:40000/insertParcelas
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoyLCJlbWFpbCI6InRlc3RAdGVzdGUuY29tIiwidGlwbyI6IlBlc3NvYUZpc2ljYSIsImlhdCI6MTc2MTY4NjE3NiwiZXhwIjoxNzYxNzcyNTc2fQ.wT0P7_n6FKuj1ffWU1UPnhHi75XQ-2Qi7itR6EXv4rI
+Authorization: Bearer {{token}}
   
  {
   "numero_parcela": 1,
@@ -47,7 +47,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoyLCJlb
 ### Atualizar parcela existente (com autenticação)
 POST http://localhost:40000/updateParcelas
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoyLCJlbWFpbCI6InRlc3RAdGVzdGUuY29tIiwidGlwbyI6IlBlc3NvYUZpc2ljYSIsImlhdCI6MTc2MTY4NjE3NiwiZXhwIjoxNzYxNzcyNTc2fQ.wT0P7_n6FKuj1ffWU1UPnhHi75XQ-2Qi7itR6EXv4rI
+Authorization: Bearer {{token}}
 
 {
   "id_parcela": 1,
@@ -58,7 +58,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoyLCJlb
 ### Marcar parcela como paga (com autenticação)
 POST http://localhost:40000/marcarParcelaComoPaga
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoyLCJlbWFpbCI6InRlc3RAdGVzdGUuY29tIiwidGlwbyI6IlBlc3NvYUZpc2ljYSIsImlhdCI6MTc2MTY4NjE3NiwiZXhwIjoxNzYxNzcyNTc2fQ.wT0P7_n6FKuj1ffWU1UPnhHi75XQ-2Qi7itR6EXv4rI
+Authorization: Bearer {{token}}
 
 {
   "id_parcela": 1
@@ -67,7 +67,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoyLCJlb
 ### Deletar parcela (soft delete - com autenticação)
 POST http://localhost:40000/deleteParcelas
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoyLCJlbWFpbCI6InRlc3RAdGVzdGUuY29tIiwidGlwbyI6IlBlc3NvYUZpc2ljYSIsImlhdCI6MTc2MTY4NjE3NiwiZXhwIjoxNzYxNzcyNTc2fQ.wT0P7_n6FKuj1ffWU1UPnhHi75XQ-2Qi7itR6EXv4rI
+Authorization: Bearer {{token}}
 
 {
   "id_parcela": 1
