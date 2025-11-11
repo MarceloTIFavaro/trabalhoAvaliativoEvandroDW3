@@ -1,38 +1,28 @@
 const mdlLogin = require("../model/mdlLogin");
 const jwt = require('jsonwebtoken');
 
-// Blacklist de tokens invalidados (em memória)
-// Em produção, considere usar Redis ou banco de dados para persistência
 const tokenBlacklist = new Set();
 
-// Função auxiliar para validar formato de CPF/CNPJ
+// Função para validar se o formato do CPF ou CNPJ corresponde ao tipo de usuário (Pessoa Física ou Empresa)
 const validarFormatoCpfCnpj = (cpfCnpj, tipo) => {
-  // Remove espaços em branco
   const cpfCnpjLimpo = cpfCnpj.replace(/\s/g, '');
-  
-  // Detecta se é CPF ou CNPJ pelo formato
   const temBarraCNPJ = cpfCnpjLimpo.includes('/');
   const temPontoCPF = cpfCnpjLimpo.includes('.') && cpfCnpjLimpo.includes('-') && !temBarraCNPJ;
-  
-  // Remove formatação para contar dígitos
   const apenasNumeros = cpfCnpjLimpo.replace(/\D/g, '');
-  
-  // Determina o tipo pelo formato ou número de dígitos
   let tipoDetectado = null;
-  
+
   if (temBarraCNPJ || apenasNumeros.length === 14) {
     tipoDetectado = 'Empresa';
   } else if (temPontoCPF || apenasNumeros.length === 11) {
     tipoDetectado = 'PessoaFisica';
   } else if (apenasNumeros.length > 0) {
-    // Se não conseguiu detectar pelo formato, usa o tamanho
     tipoDetectado = apenasNumeros.length === 14 ? 'Empresa' : 'PessoaFisica';
   }
-  
+
   return tipoDetectado === tipo;
 };
 
-// Login do usuário
+// Função responsável por realizar o login do usuário e gerar o token JWT
 const loginUsuario = async (req, res) => {
   try {
     const { email, senha } = req.body;
@@ -47,14 +37,12 @@ const loginUsuario = async (req, res) => {
       return res.status(401).json({ error: "Email ou senha incorretos" });
     }
 
-    // Validar se o formato do CPF/CNPJ corresponde ao tipo de usuário
     if (!validarFormatoCpfCnpj(usuario.cpf_cnpj, usuario.tipo)) {
       return res.status(401).json({ 
         error: `Documento cadastrado não corresponde ao tipo ${usuario.tipo === 'PessoaFisica' ? 'Pessoa Física (CPF)' : 'Empresa (CNPJ)'}` 
       });
     }
 
-    // Gerar token JWT
     const token = jwt.sign(
       { 
         id_user: usuario.id_user, 
@@ -65,7 +53,6 @@ const loginUsuario = async (req, res) => {
       { expiresIn: '24h' }
     );
 
-    // Remove a senha da resposta por segurança
     const { senha: _, ...usuarioSemSenha } = usuario;
     
     res.status(200).json({
@@ -78,29 +65,27 @@ const loginUsuario = async (req, res) => {
   }
 };
 
-// Middleware de autenticação JWT
+// Middleware que autentica o usuário verificando o token JWT
 const AutenticaJWT = async (req, res, next) => {
   try {
-    // Extrair token do header Authorization
     const authHeader = req.headers.authorization;
     let token = null;
     
     if (authHeader && authHeader.startsWith('Bearer ')) {
-      token = authHeader.substring(7); // Remove 'Bearer ' prefix
+      token = authHeader.substring(7);
     }
     
     if (!token) {
       return res.status(401).json({ error: "Token de acesso não fornecido" });
     }
 
-    // Verificar se o token está na blacklist (invalidado)
     if (tokenBlacklist.has(token)) {
       console.log(`Tentativa de acesso com token invalidado. Total na blacklist: ${tokenBlacklist.size}`);
       return res.status(401).json({ error: "Token foi invalidado (logout realizado)" });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'sua_chave_secreta_aqui');
-    req.user = decoded; // Adiciona informações do usuário ao request
+    req.user = decoded;
     next();
   } catch (error) {
     if (error.name === 'JsonWebTokenError') {
@@ -112,19 +97,17 @@ const AutenticaJWT = async (req, res, next) => {
   }
 };
 
-// Logout do usuário - invalida o token
+// Função que realiza o logout e invalida o token atual, adicionando-o na blacklist
 const logoutUsuario = async (req, res) => {
   try {
-    // Extrair token do header Authorization
     const authHeader = req.headers.authorization;
     let token = null;
     
     if (authHeader && authHeader.startsWith('Bearer ')) {
-      token = authHeader.substring(7); // Remove 'Bearer ' prefix
+      token = authHeader.substring(7);
     }
     
     if (token) {
-      // Adicionar token à blacklist para invalidá-lo
       tokenBlacklist.add(token);
       console.log(`Token invalidado no logout. Total de tokens na blacklist: ${tokenBlacklist.size}`);
       console.log(`Token (primeiros 50 chars): ${token.substring(0, 50)}...`);
@@ -142,7 +125,7 @@ const logoutUsuario = async (req, res) => {
   }
 };
 
-// Função para debug - verificar status da blacklist (opcional, pode remover em produção)
+// Função auxiliar para consultar o status da blacklist (para debug)
 const getBlacklistStatus = () => {
   return {
     totalTokensInvalidados: tokenBlacklist.size,
@@ -154,5 +137,5 @@ module.exports = {
   loginUsuario,
   logoutUsuario,
   AutenticaJWT,
-  getBlacklistStatus, // Exportar para debug
+  getBlacklistStatus,
 };

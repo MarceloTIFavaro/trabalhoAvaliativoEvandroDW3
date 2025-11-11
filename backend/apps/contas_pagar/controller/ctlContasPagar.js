@@ -1,7 +1,6 @@
 const mdlContasPagar = require("../model/mdlContasPagar");
 
-
-// Listar todas as contas 
+// Função para listar todas as contas a pagar
 const getAllContasPagar = async (req, res) => {
     try {
         const contasPagar = await mdlContasPagar.getAllContasPagar();
@@ -11,8 +10,7 @@ const getAllContasPagar = async (req, res) => {
     }
 };
 
-
-// Buscar conta por ID 
+// Função para buscar uma conta específica pelo ID
 const getContasPagarByID = async (req, res) => {
     try {
         const { id_contas } = req.body;
@@ -28,13 +26,13 @@ const getContasPagarByID = async (req, res) => {
     }
 };
 
-// Buscar contas por usuário
+// Função para buscar todas as contas vinculadas a um determinado usuário
 const getContasPagarByUsuario = async (req, res) => {
     try {
         const { id_usuario } = req.body;
         let contas = await mdlContasPagar.getContasPagarByUsuario(id_usuario);
         
-        // Aplicar verificação automática de status para cada conta
+        // Atualiza o status automaticamente com base na data de vencimento
         contas = contas.map(conta => mdlContasPagar.verificarStatusAutomatico(conta));
         
         res.status(200).json(contas);
@@ -43,12 +41,11 @@ const getContasPagarByUsuario = async (req, res) => {
     }
 };
 
-
-// Criar nova conta 
+// Função para criar uma nova conta a pagar
 const insertContasPagar = async (req, res) => {
     try {
         const dados = req.body;
-        // Forçar status como 'Pendente' ao criar uma nova conta
+        // Define o status inicial como 'Pendente'
         dados.status = 'Pendente';
         const novaConta = await mdlContasPagar.insertContasPagar(dados);
         res.status(201).json(novaConta);
@@ -57,25 +54,24 @@ const insertContasPagar = async (req, res) => {
     }
 };
 
-
-// Atualizar conta 
+// Função para atualizar os dados de uma conta existente
 const updateContasPagar = async (req, res) => {
     try {
         const { id_contas } = req.body;
         const dados = req.body;
         
-        // Buscar a conta atual para manter o status de "Pago" se já estiver pago
+        // Busca a conta antes de atualizar para preservar status de pagamento
         const contaAtual = await mdlContasPagar.getContasPagarByID(id_contas);
         
         if (!contaAtual) {
             return res.status(404).json({ error: "Conta não encontrada" });
         }
         
-        // Se a conta já está paga, manter como pago. Caso contrário, recalcular
+        // Se a conta já estiver paga, mantém o status como 'Pago'
         if (contaAtual.status === 'Pago') {
             dados.status = 'Pago';
         } else {
-            // Recalcular status baseado na nova data de vencimento
+            // Caso contrário, recalcula o status com base na nova data de vencimento
             const hoje = new Date();
             hoje.setHours(0, 0, 0, 0);
             const dataVencimento = new Date(dados.data_vencimento);
@@ -96,8 +92,7 @@ const updateContasPagar = async (req, res) => {
     }
 };
 
-
-// Deletar conta 
+// Função para deletar uma conta a pagar
 const deleteContasPagar = async (req, res) => {
     try {
         const { id_contas } = req.body;
@@ -108,7 +103,7 @@ const deleteContasPagar = async (req, res) => {
     }
 };
 
-// Marcar conta como paga
+// Função para marcar uma conta como paga
 const marcarContaComoPaga = async (req, res) => {
     try {
         const { id_contas } = req.body;
@@ -126,7 +121,6 @@ const marcarContaComoPaga = async (req, res) => {
         res.status(500).json({ error: "Erro ao marcar conta como paga", details: error.message });
     }
 };
-
 
 module.exports = {
     getAllContasPagar,
